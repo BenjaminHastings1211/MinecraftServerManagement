@@ -19,6 +19,7 @@ from resources import players
 from resources.console import Console, strip_formatting
 from resources.properties import Properties
 from resources.rcon import Rcon, RconError
+from resources.database import Database
 
 
 ROOT = Path(__file__).resolve().parents[2]

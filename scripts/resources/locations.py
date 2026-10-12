@@ -1,4 +1,3 @@
-```python
 """
 Waypoint management for Minecraft servers.
 
@@ -214,4 +213,3 @@ def get(db, server_id, player_id, name):
         """,
         [server_id, player_id, name],
     ).first()
-```

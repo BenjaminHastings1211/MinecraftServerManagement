@@ -1,29 +1,24 @@
+#!/usr/bin/env python3
 from resources import cli, tellraw
+from resources.database import Database;
 
 def main():
-    parser = cli.parser(
-        "For a running server, reboot the RCON listender",
-        target=cli.ONE,
-    )
+    servers = cli.resolve("all")
 
-    args = parser.parse_args()
+    for server in servers:
+        if not server.is_running():
+            continue
 
-    server = cli.resolve(args.server)[0]
+        print("Rebooting RCON listener for %s."%server.name)
 
-    if not server.is_running():
-        print(server, "is not running.")
-        return 1
+        server.stop_listener();
+        server.ensure_listener();
 
-    print("Stopping RCON Listner...");
-    server.stop_listener();
-    print("Starting RCON Listner...");
-    server.ensure_listener();
-
-    server.tell(
-        tellraw.to_all()
-        .text("Lutzcraft RCON", color="#00ff00")
-        .text(": back online.")
-    )
+        server.tell(
+            tellraw.to_all()
+            .text("Lutzcraft RCON", color="#00ff00")
+            .text(": back online.")
+        )
 
 
 if __name__ == "__main__":

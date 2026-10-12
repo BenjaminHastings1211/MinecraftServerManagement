@@ -16,18 +16,19 @@ MC_DB_USER, MC_DB_PASSWORD and MC_DB_NAME environment variables.
 """
 
 import os
-
+from dotenv import load_dotenv
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-
 import pymysql
 import pymysql.cursors
 
 
+load_dotenv()
+
 HOST = os.environ.get("MC_DB_HOST", "127.0.0.1")
 PORT = int(os.environ.get("MC_DB_PORT", "3306"))
-USER = os.environ.get("MC_DB_USER", "minecraftAPI")
-PASSWORD = os.environ.get("MC_DB_PASSWORD", "pi1234")
+USER = os.environ.get("MC_DB_USER", "")
+PASSWORD = os.environ.get("MC_DB_PASSWORD", "")
 NAME = os.environ.get("MC_DB_NAME", "minecraft")
 
 

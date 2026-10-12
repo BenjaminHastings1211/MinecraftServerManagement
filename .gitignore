@@ -1,0 +1,6 @@
+.claude
+servers/*
+!servers/.gitkeep
+versions/*
+!versions/.gitkeep
+__pycache__/

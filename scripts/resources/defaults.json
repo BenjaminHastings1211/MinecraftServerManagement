@@ -1,0 +1,13 @@
+{
+    "backup_enabled": false,
+    "on_boot": false,
+    "backup_history_size": 5,
+    "auto_update": false,
+    "ram_min": "1G",
+    "ram_max": "2G",
+    "backup_size" : 0,
+    "size"	: 0,
+    "properties" : {
+    	"white-list" : "false"
+    }
+}

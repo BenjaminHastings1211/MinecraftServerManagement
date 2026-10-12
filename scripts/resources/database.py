@@ -25,12 +25,11 @@ import pymysql.cursors
 
 load_dotenv()
 
-HOST = os.environ.get("MC_DB_HOST", "127.0.0.1")
-PORT = int(os.environ.get("MC_DB_PORT", "3306"))
-USER = os.environ.get("MC_DB_USER", "")
-PASSWORD = os.environ.get("MC_DB_PASSWORD", "")
-NAME = os.environ.get("MC_DB_NAME", "minecraft")
-
+HOST = os.environ.get("DB_HOST", "127.0.0.1")
+PORT = int(os.environ.get("DB_PORT", "3306"))
+USER = os.environ.get("DB_USER", "")
+PASSWORD = os.environ.get("DB_PASSWORD", "")
+NAME = os.environ.get("DB_NAME", "minecraft")
 
 class DatabaseError(RuntimeError):
     pass

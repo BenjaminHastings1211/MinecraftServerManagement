@@ -65,30 +65,46 @@ CREATE TABLE IF NOT EXISTS locations (
     PRIMARY KEY (id),
     INDEX idx_locations_server (server_id),
     INDEX idx_locations_creator (server_id, created_by),
-    INDEX idx_locations_public (server_id, is_public, active) 
-    ADD UNIQUE KEY uq_location_owner_name (server_id, created_by, location_name);
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS messages (
-    id                  INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    server_id           INT UNSIGNED NOT NULL,
-    created_by          INT UNSIGNED NOT NULL,
-    created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    msg_content         VARCHAR(256) NOT NULL,
-
+    INDEX idx_locations_public (server_id, is_public, active),
+    UNIQUE KEY uq_location_owner_name (server_id, created_by, location_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS sessions (
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     player_id INT UNSIGNED NOT NULL,
-    server_id INT UNSIGNED NOT NULL, -- might not need
+    server_id INT UNSIGNED NOT NULL,
     started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
     duration_seconds INT UNSIGNED NULL,
-);
 
--- PLAYER_ID AND SERVER_ID ARE NOT BOTH NEEDED BC PLAYER_ID IS SERVER DEPENDENT
+    PRIMARY KEY (id),
+
+    INDEX idx_sessions_player_history (player_id, started_at),
+
+    INDEX idx_sessions_server_history (server_id, started_at),
+
+    INDEX idx_sessions_active (server_id, player_id, ended_at),
+
+    CONSTRAINT fk_sessions_player
+        FOREIGN KEY (player_id)
+        REFERENCES players(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_sessions_server
+        FOREIGN KEY (server_id)
+        REFERENCES servers(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- CREATE TABLE IF NOT EXISTS messages (
+--     id                  INT UNSIGNED NOT NULL AUTO_INCREMENT,
+--     server_id           INT UNSIGNED NOT NULL,
+--     created_by          INT UNSIGNED NOT NULL,
+--     created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+--     msg_content         VARCHAR(256) NOT NULL,
+
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- this should be like a activity board people can see what other people need and help out
 -- CREATE TABLE IF NOT EXISTS tasks (

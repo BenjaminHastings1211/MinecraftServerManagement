@@ -15,7 +15,7 @@ from pathlib import Path
 import psutil
 
 from resources import registry
-from resources import players as player_table
+from resources import players
 from resources.console import Console, strip_formatting
 from resources.properties import Properties
 from resources.rcon import Rcon, RconError
@@ -174,6 +174,7 @@ class Server:
         self.log_path = self.path / "console.log"
         self.listener_log_path = self.path / "listener.log"
         self.backups_path = self.path / "backups"
+        self.db = Database()
 
         if not self.path.is_dir():
             raise FileNotFoundError(f"Server not found: {self.id}")
@@ -671,7 +672,7 @@ class Server:
             self._forget("server")
 
         self.stop_listener()
-        player_table.logout_all(self.number)
+        players.logout_all(self.db, self.number)
         return True
 
     # Listener

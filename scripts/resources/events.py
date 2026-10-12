@@ -1,7 +1,7 @@
 """
 Sorting server log lines into events, each with an action().
 
-    event = events.classify(server, line)   # Login, Logout, Chat or None
+    event = events.classify(server, line)  # Login, Logout, Chat or None
 
     if event:
         event.action()
@@ -15,8 +15,15 @@ event.match["name"].
 from datetime import datetime, timedelta
 
 from resources import players, locations, tellraw
-from resources.database import query
-from resources.console import CHAT, JOINED, LEFT, PLAYTIME_COMMAND, DEATH, DEATH_LOCATION_COMMAND
+from resources.console import (
+    CHAT,
+    JOINED,
+    LEFT,
+    PLAYTIME_COMMAND,
+    DEATH,
+    DEATH_LOCATION_COMMAND,
+)
+
 
 def duration(seconds):
     days, seconds = divmod(seconds, 86400)
@@ -37,13 +44,13 @@ def duration(seconds):
     return " ".join(parts) if parts else "0s"
 
 
-
 class Event:
     pattern = None
 
     def __init__(self, server, line, match):
         self.server = server
-        self.line = line      # the full LogLine
+        self.db = server.db
+        self.line = line
         self.match = match
 
     def __repr__(self):
@@ -51,7 +58,7 @@ class Event:
 
     @classmethod
     def parse(cls, server, line):
-        """An instance of this event if the line matches, else None."""
+        """Return an event instance if the line matches, otherwise None."""
         # Only the server's own messages, so a player can't fake one in chat.
         if line.source != "Server thread":
             return None
@@ -68,7 +75,8 @@ class Event:
         """
         now = datetime.now()
         moment = datetime.combine(
-            now.date(), datetime.strptime(self.line.time, "%H:%M:%S").time()
+            now.date(),
+            datetime.strptime(self.line.time, "%H:%M:%S").time(),
         )
 
         if moment > now + timedelta(minutes=1):
@@ -88,23 +96,28 @@ class Login(Event):
         return self.match["player"]
 
     def action(self):
-        first_visit = players.get(self.server.number, self.player) is None
+        first_visit = (
+            players.get(self.db, self.server.number, self.player) is None
+        )
 
         # Record the login before messaging, so a failed message can't lose it.
-        player_info = players.login(self.server.number, self.player, at=self.when)
+        player_info = players.login(
+            self.db,
+            self.server.number,
+            self.player,
+            at=self.when,
+        )
 
         if first_visit:
             self.server.register_player(self.player)
 
-        # set the death counter to match db
-        self.server.command("scoreboard players set %s deaths %d"%(self.player,player_info["death_count"]))
+        # Keep the Minecraft scoreboard synchronized with the database.
+        self.server.command(
+            "scoreboard players set %s deaths %d"
+            % (self.player, player_info["death_count"])
+        )
 
-        # self.server.tell(            
-        #     tellraw.to_player(self.player)
-        #     .text("Welcome ", bold=True, color="red")
-        #     .text(self.player, color="aqua")
-        #     .text("!")
-        # )
+        # Welcome message can be added here.
 
 
 class Logout(Event):
@@ -115,7 +128,12 @@ class Logout(Event):
         return self.match["player"]
 
     def action(self):
-        players.logout(self.server.number, self.player, at=self.when)
+        players.logout(
+            self.db,
+            self.server.number,
+            self.player,
+            at=self.when,
+        )
 
 
 class Chat(Event):
@@ -129,10 +147,10 @@ class Chat(Event):
     def text(self):
         return self.match["text"]
 
+
 class Death(Event):
     pattern = DEATH
 
-    # override the existing parse to also check with the db and server for death information
     @classmethod
     def parse(cls, server, line):
         event = super().parse(server, line)
@@ -141,27 +159,25 @@ class Death(Event):
             return None
 
         player = event.player
-
         current_count = server.get_death_count(player)
 
-        # Read the last stored count from your database.
-        result = query(
+        result = server.db.query(
             """
             SELECT death_count
             FROM players
             WHERE server_id = %s AND mc_name = %s;
             """,
-            [server.number, player]
+            [server.number, player],
         ).first()
 
         if result is None:
-            return None        
+            return None
 
         previous_count = result["death_count"] or 0
 
+        # Ignore death messages that do not correspond to a new death.
         if current_count <= previous_count:
             return None
-
 
         return event
 
@@ -169,30 +185,30 @@ class Death(Event):
     def player(self):
         return self.match["player"]
 
-    @property
-    def by_entity(self):
-        return self.match.groupdict().get("by")
-
     def action(self):
-        result = query(
+        result = self.db.query(
             """
             SELECT death_count, last_death_date
             FROM players
             WHERE server_id = %s AND mc_name = %s;
             """,
-            [self.server.number, self.player]
+            [self.server.number, self.player],
         ).first()
 
-        death_count = result['death_count']
-        last_death_date = result['last_death_date']
+        if result is None:
+            return
+
+        last_death_date = result["last_death_date"]
 
         if last_death_date is not None:
-            # has died before
-            seconds_since_last_death = int((datetime.now() - last_death_date).total_seconds())
+            seconds_since_last_death = max(
+                0,
+                int((self.when - last_death_date).total_seconds()),
+            )
 
             self.server.tell(
                 tellraw.to_all()
-                .text("last death: ")
+                .text("Last death: ")
                 .text(duration(seconds_since_last_death))
                 .text(" ago")
             )
@@ -204,23 +220,36 @@ class Death(Event):
             .text("' to get location of death.")
         )
 
-        query(
+        # Update death information in the database.
+        self.db.query(
             """
-                UPDATE players
-                SET death_count = death_count + 1,
-                last_death_date = NOW()
-                WHERE server_id = %s AND mc_name = %s;
+            UPDATE players
+            SET death_count = death_count + 1,
+                last_death_date = %s
+            WHERE server_id = %s AND mc_name = %s;
             """,
-            [self.server.number, self.player]
+            [self.when, self.server.number, self.player],
         )
 
-        # get death info and add it as a location
+        # Get death information and save it as a waypoint.
         pos = self.server.get_player_pos(self.player)
         dim = self.server.get_player_dimension(self.player)
 
-        # create the location
-        db_player_info = players.get(self.server.number, self.player)
-        locations.create(self.server.number, db_player_info['id'], "%s death location"%self.player, pos, dim);
+        db_player_info = players.get(
+            self.db,
+            self.server.number,
+            self.player,
+        )
+
+        if db_player_info is not None:
+            locations.create(
+                self.db,
+                self.server.number,
+                db_player_info["id"],
+                f"{self.player} death location",
+                pos,
+                dim,
+            )
 
 
 class DeathLocationCommand(Event):
@@ -231,22 +260,40 @@ class DeathLocationCommand(Event):
         return self.match["player"]
 
     def action(self):
-        db_player_info = players.get(self.server.number, self.player)
-        result = locations.get(self.server.number, db_player_info['id'], "%s death location"%self.player);
+        db_player_info = players.get(
+            self.db,
+            self.server.number,
+            self.player,
+        )
+
+        if db_player_info is None:
+            self.server.tell(
+                tellraw.to_player(self.player).text("No death location.")
+            )
+            return
+
+        result = locations.get(
+            self.db,
+            self.server.number,
+            db_player_info["id"],
+            f"{self.player} death location",
+        )
 
         if result is None:
-            self.server.tell(tellraw.to_player(self.player).text("No death location."))
-            return;
-        
+            self.server.tell(
+                tellraw.to_player(self.player).text("No death location.")
+            )
+            return
+
         self.server.tell(
             tellraw.to_player(self.player)
-            .text(result['dimension'], bold=True, color="#00ff00")
+            .text(result["dimension"], bold=True, color="#00ff00")
             .text(": ")
-            .text(result['x_position'], bold=True, color="#ff0000")
+            .text(result["x_position"], bold=True, color="#ff0000")
             .text(" ")
-            .text(result['y_position'], bold=True, color="#ff0000")
+            .text(result["y_position"], bold=True, color="#ff0000")
             .text(" ")
-            .text(result['z_position'], bold=True, color="#ff0000")
+            .text(result["z_position"], bold=True, color="#ff0000")
         )
 
 
@@ -262,14 +309,17 @@ class PlaytimeCommand(Event):
         return self.match["text"]
 
     def action(self):
-        result = query(
+        result = self.db.query(
             """
             SELECT playtime_seconds, session_start
             FROM players
             WHERE server_id = %s AND mc_name = %s;
             """,
-            [self.server.number, self.player]
+            [self.server.number, self.player],
         ).first()
+
+        if result is None:
+            return
 
         playtime = result["playtime_seconds"] or 0
         session_start = result["session_start"]
@@ -277,7 +327,8 @@ class PlaytimeCommand(Event):
 
         if session_start is not None:
             current_session = max(
-                0, int((self.when - session_start).total_seconds())
+                0,
+                int((self.when - session_start).total_seconds()),
             )
             playtime += current_session
 
@@ -298,18 +349,27 @@ class PlaytimeCommand(Event):
             tellraw.to_player(self.player)
             .text("▶ Current Session: ", color="#aaaaaa")
             .text(
-                duration(current_session) if session_start is not None else "Not in session",
+                duration(current_session)
+                if session_start is not None
+                else "Not in session",
                 bold=True,
-                color="#ffaa00"
+                color="#ffaa00",
             )
         )
 
 
-EVENTS = [Login, Logout, Death, DeathLocationCommand, PlaytimeCommand, Chat]
+EVENTS = [
+    Login,
+    Logout,
+    Death,
+    DeathLocationCommand,
+    PlaytimeCommand,
+    Chat,
+]
 
 
 def classify(server, line):
-    """The first event in EVENTS that matches the line, or None."""
+    """Return the first event that matches the line, or None."""
     for event_class in EVENTS:
         event = event_class.parse(server, line)
 

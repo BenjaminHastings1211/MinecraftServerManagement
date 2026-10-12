@@ -1,4 +1,3 @@
-```python
 """
 The players table: one row per player per server, tracking sessions
 and playtime. See schema.sql.
@@ -187,4 +186,3 @@ def online(db, server_id):
         _SELECT + "WHERE server_id = %s AND online ORDER BY mc_name",
         [server_id],
     ).rows
-```

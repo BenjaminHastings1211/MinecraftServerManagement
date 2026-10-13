@@ -1,17 +1,19 @@
-#!/usr/bin/env python3
 """
-mc-listen: follow a server's log and run an action for each event
-(see mcmanager/events.py).
+The listener: follow a server's log and run an action for each event
+(see events.py).
 
 mc-start launches this in the background for every server and mc-stop
-ends it. Run it by hand to watch what it does; stop it with Ctrl-C.
+ends it. Run it by hand to watch what it does; stop it with Ctrl-C:
+
+    .venv/bin/python -m mcmanager.listener <server-id>
 """
 
 import time
 import traceback
 import os
 
-from mcmanager import cli, events
+from mcmanager import cli
+from mcmanager.listener import events
 from mcmanager.console import LogFollower, LogLine
 from mcmanager import tellraw
 
@@ -66,7 +68,3 @@ def main():
 
     (server,) = cli.resolve(args.server)
     listen(server)
-
-
-if __name__ == "__main__":
-    cli.run(main)

@@ -4,10 +4,7 @@ import secrets
 import shutil
 import subprocess
 import sys
-import tarfile
 import time
-
-from contextlib import contextmanager
 
 from datetime import datetime
 from pathlib import Path
@@ -18,8 +15,10 @@ from mcmanager.database import registry, players
 from mcmanager.database.client import DatabaseClient
 from mcmanager.console import Console, strip_formatting
 from mcmanager.properties import Properties
+from mcmanager import backup as _backup
 from mcmanager.rcon import Rcon, RconError
-from mcmanager.paths import ROOT, SERVERS, VERSIONS, DEFAULTS, VENV_PYTHON
+from mcmanager.paths import ROOT, SERVERS, DEFAULTS, VENV_PYTHON
+from mcmanager.versions import find_version_jar, filename_to_version
 
 
 LISTENER_MODULE = "mcmanager.listener"
@@ -32,8 +31,6 @@ DEFAULT_PORT = 25565
 DEFAULT_RCON_PORT = 25575
 
 READY_TIMEOUT = 300
-
-BACKUP_PATTERN = "world-*.tar.gz"
 
 _PLAYER_LIST = re.compile(r"There are (\d+) of a max of (\d+) players online:\s*(.*)")
 
@@ -63,41 +60,6 @@ def parse_server_id(value):
         raise ValueError("Server ID must be positive.")
 
     return f"server-{number:03d}"
-
-
-def version_to_filename(version):
-    return f"server-{version.replace('.', '-')}.jar"
-
-
-def filename_to_version(path):
-    return Path(path).stem.removeprefix("server-").replace("-", ".")
-
-
-def version_key(version):
-    """Sortable key for "26.3" / "1.21.10" style versions."""
-    return [int(part) if part.isdigit() else -1 for part in str(version).split(".")]
-
-
-def find_version_jar(version=None):
-    """
-    Return the JAR in VERSIONS for a version number ("26.3") or
-    filename ("server-26-3.jar"), or the newest version if None.
-    """
-    if version is None:
-        jars = list(VERSIONS.glob("server-*.jar"))
-
-        if not jars:
-            raise FileNotFoundError("No server versions found.")
-
-        return max(jars, key=lambda jar: version_key(filename_to_version(jar)))
-
-    filename = version if version.endswith(".jar") else version_to_filename(version)
-    jar = VERSIONS / filename
-
-    if not jar.is_file():
-        raise FileNotFoundError(f"Version not found: {filename}")
-
-    return jar
 
 
 def used_ports():
@@ -793,145 +755,23 @@ class Server:
 
     def backups(self):
         """Backup archives, newest first."""
-        if not self.backups_path.is_dir():
-            return []
+        return _backup.listing(self)
 
-        return sorted(
-            self.backups_path.glob(BACKUP_PATTERN),
-            key=lambda path: path.stat().st_mtime,
-            reverse=True,
-        )
-
-    @contextmanager
     def saving_paused(self):
-        """
-        While inside, a running server has flushed everything to disk
-        and won't write to the world, so its files can be copied
-        safely. Yields True if paused (or not running), False if the
-        server is running but RCON can't be reached.
-        """
-        if not self.is_running():
-            yield True
-            return
-
-        try:
-            self.command("save-off")
-            self.command("save-all flush")
-        except RconError:
-            yield False
-            return
-
-        try:
-            yield True
-        finally:
-            for attempt in range(3):
-                try:
-                    self.command("save-on")
-                    break
-                except RconError:
-                    time.sleep(2)
-            else:
-                raise RuntimeError(
-                    f"Could not turn saving back on for {self.id}! "
-                    f"Run: mc-cmd {self.id} save-on"
-                )
+        """See backup.saving_paused()."""
+        return _backup.saving_paused(self)
 
     def backup(self, label=None, prune=True):
-        """
-        Archive the world into backups/. Returns (path, paused) where
-        paused says whether saving was paused, i.e. the copy is
-        guaranteed consistent.
-        """
-        world = self.world_path
-
-        if not world.is_dir():
-            raise FileNotFoundError(f"No world folder found: {world}")
-
-        self.backups_path.mkdir(exist_ok=True)
-
-        stamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        name = f"world-{stamp}-{label}.tar.gz" if label else f"world-{stamp}.tar.gz"
-        path = self.backups_path / name
-        partial = path.with_name(name + ".partial")
-
-        try:
-            with self.saving_paused() as paused:
-                with tarfile.open(partial, "w:gz", compresslevel=6) as tar:
-                    tar.add(world, arcname=world.name)
-
-            partial.replace(path)
-
-        finally:
-            partial.unlink(missing_ok=True)
-
-        if prune:
-            self.prune_backups()
-
-        return path, paused
+        """Archive the world into backups/. Returns (path, paused)."""
+        return _backup.create(self, label, prune)
 
     def prune_backups(self, keep=None):
         """Delete the oldest backups beyond backup_history_size. Returns them."""
-        keep = keep or self.config.get("backup_history_size", 5)
-        removed = self.backups()[keep:]
-
-        for path in removed:
-            path.unlink()
-
-        return removed
+        return _backup.prune_old(self, keep)
 
     def restore(self, backup_path):
-        """
-        Replace the world with a backup. The server must be stopped;
-        the current world is discarded, so back it up first.
-        """
-        backup_path = Path(backup_path)
-
-        if self.is_running():
-            raise RuntimeError(f"Stop {self.name} ({self.id}) before restoring.")
-
-        staging = self.path / ".restore"
-        shutil.rmtree(staging, ignore_errors=True)
-        staging.mkdir()
-
-        try:
-            with tarfile.open(backup_path, "r:gz") as tar:
-                members = tar.getmembers()
-
-                for member in members:
-                    parts = Path(member.name).parts
-
-                    if (
-                        member.name.startswith("/")
-                        or ".." in parts
-                        or not (member.isfile() or member.isdir())
-                    ):
-                        raise ValueError(f"Unsafe entry in backup: {member.name}")
-
-                tar.extractall(staging, members=members)
-
-            extracted = [path for path in staging.iterdir() if path.is_dir()]
-
-            if len(extracted) != 1:
-                raise ValueError(f"Backup does not contain a single world folder: {backup_path.name}")
-
-            world = self.world_path
-            old_world = world.with_name(world.name + ".old")
-            shutil.rmtree(old_world, ignore_errors=True)
-
-            if world.exists():
-                world.rename(old_world)
-
-            try:
-                extracted[0].rename(world)
-            except OSError:
-                if old_world.exists():
-                    old_world.rename(world)
-                raise
-
-            shutil.rmtree(old_world, ignore_errors=True)
-
-        finally:
-            shutil.rmtree(staging, ignore_errors=True)
+        """Replace the world with a backup. The server must be stopped."""
+        return _backup.restore(self, backup_path)
 
     # Maintenance
 

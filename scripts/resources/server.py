@@ -28,7 +28,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SERVERS = ROOT / "servers"
 VERSIONS = ROOT / "versions"
 DEFAULTS = ROOT / "scripts/resources/misc/defaults.json"
-LISTENER = ROOT / "scripts/listener.py"
+LISTENER = ROOT / "scripts/resources/listener.py"
 
 DEFAULT_PORT = 25565
 DEFAULT_RCON_PORT = 25575

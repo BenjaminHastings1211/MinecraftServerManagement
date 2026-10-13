@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS servers (
 CREATE TABLE IF NOT EXISTS players (
     id               INT UNSIGNED NOT NULL AUTO_INCREMENT,
     server_id        INT UNSIGNED NOT NULL,
-    uuid             VARCHAR(36)  NOT NULL,
+    uuid             VARCHAR(36)  NULL,
     mc_name          VARCHAR(32)  NOT NULL,
     real_name        VARCHAR(100) NULL,
     first_joined     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

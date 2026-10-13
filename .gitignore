@@ -5,3 +5,4 @@ versions/*
 !versions/.gitkeep
 __pycache__/
 .env
+.venv

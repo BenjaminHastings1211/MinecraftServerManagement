@@ -25,27 +25,36 @@ def listen(server):
     print(f"Listening to {cli.server_label(server)}.", flush=True)
 
     try:
-        while True:
-            for raw in follower.read():
-                event = events.classify(server, LogLine.parse(raw))
+        with server.db as db:
+            while True:
+                for raw in follower.read():
+                    try:
+                        event = events.classify(
+                            server,
+                            LogLine.parse(raw),
+                            db,
+                        )
 
-                if event is None:
-                    continue
+                        if event is None:
+                            continue
 
-                print(event, flush=True)
+                        print(event, flush=True)
+                        event.action(db)
 
-                # One bad event mustn't stop the listener.
-                try:
-                    event.action()
-                except Exception as e:
-                    server.tell(
-                        tellraw.to_all()
-                        .text("Error: ", bold=True, color="#ff5555")
-                        .text(str(e))
-                    )
-                    traceback.print_exc()
+                    except Exception as e:
+                        print(f"Error processing log line: {e}", flush=True)
+                        traceback.print_exc()
 
-            time.sleep(POLL_INTERVAL)
+                        try:
+                            server.tell(
+                                tellraw.to_all()
+                                .text("Error: ", bold=True, color="#ff5555")
+                                .text(str(e))
+                            )
+                        except Exception:
+                            traceback.print_exc()
+
+                time.sleep(POLL_INTERVAL)
     finally:
         follower.close()
 

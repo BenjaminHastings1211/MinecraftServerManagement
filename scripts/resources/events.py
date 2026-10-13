@@ -1,10 +1,11 @@
 """
 Sorting server log lines into events, each with an action().
 
-    event = events.classify(server, line)  # Login, Logout, Chat or None
+    with server.db as db:
+        event = events.classify(server, line, db)
 
-    if event:
-        event.action()
+        if event:
+            event.action(db)
 
 To handle a new kind of message, subclass Event with a `pattern`
 (a regex matched against LogLine.message) and an action(), then add
@@ -49,7 +50,6 @@ class Event:
 
     def __init__(self, server, line, match):
         self.server = server
-        self.db = server.db
         self.line = line
         self.match = match
 
@@ -57,7 +57,7 @@ class Event:
         return f"{type(self).__name__}({self.line.raw!r})"
 
     @classmethod
-    def parse(cls, server, line):
+    def parse(cls, server, line, db):
         """Return an event instance if the line matches, otherwise None."""
         # Only the server's own messages, so a player can't fake one in chat.
         if line.source != "Server thread":
@@ -84,7 +84,7 @@ class Event:
 
         return moment
 
-    def action(self):
+    def action(self, db):
         pass
 
 
@@ -95,14 +95,14 @@ class Login(Event):
     def player(self):
         return self.match["player"]
 
-    def action(self):
+    def action(self, db):
         first_visit = (
-            players.get(self.db, self.server.number, self.player) is None
+            players.get(db, self.server.number, self.player) is None
         )
 
         # Record the login before messaging, so a failed message can't lose it.
         player_info = players.login(
-            self.db,
+            db,
             self.server.number,
             self.player,
             at=self.when,
@@ -117,8 +117,6 @@ class Login(Event):
             % (self.player, player_info["death_count"])
         )
 
-        # Welcome message can be added here.
-
 
 class Logout(Event):
     pattern = LEFT
@@ -127,9 +125,9 @@ class Logout(Event):
     def player(self):
         return self.match["player"]
 
-    def action(self):
+    def action(self, db):
         players.logout(
-            self.db,
+            db,
             self.server.number,
             self.player,
             at=self.when,
@@ -152,22 +150,22 @@ class Death(Event):
     pattern = DEATH
 
     @classmethod
-    def parse(cls, server, line):
-        event = super().parse(server, line)
+    def parse(cls, server, line, db):
+        event = super().parse(server, line, db)
 
         if event is None:
             return None
 
-        player = event.player
-        current_count = server.get_death_count(player)
+        # Compare Minecraft's death scoreboard with the database.
+        current_count = server.get_death_count(event.player)
 
-        result = server.db.query(
+        result = db.query(
             """
             SELECT death_count
             FROM players
             WHERE server_id = %s AND mc_name = %s;
             """,
-            [server.number, player],
+            [server.number, event.player],
         ).first()
 
         if result is None:
@@ -185,10 +183,10 @@ class Death(Event):
     def player(self):
         return self.match["player"]
 
-    def action(self):
-        result = self.db.query(
+    def action(self, db):
+        result = db.query(
             """
-            SELECT death_count, last_death_date
+            SELECT last_death_date
             FROM players
             WHERE server_id = %s AND mc_name = %s;
             """,
@@ -221,7 +219,7 @@ class Death(Event):
         )
 
         # Update death information in the database.
-        self.db.query(
+        db.query(
             """
             UPDATE players
             SET death_count = death_count + 1,
@@ -236,14 +234,14 @@ class Death(Event):
         dim = self.server.get_player_dimension(self.player)
 
         db_player_info = players.get(
-            self.db,
+            db,
             self.server.number,
             self.player,
         )
 
         if db_player_info is not None:
             locations.create(
-                self.db,
+                db,
                 self.server.number,
                 db_player_info["id"],
                 f"{self.player} death location",
@@ -259,9 +257,9 @@ class DeathLocationCommand(Event):
     def player(self):
         return self.match["player"]
 
-    def action(self):
+    def action(self, db):
         db_player_info = players.get(
-            self.db,
+            db,
             self.server.number,
             self.player,
         )
@@ -273,7 +271,7 @@ class DeathLocationCommand(Event):
             return
 
         result = locations.get(
-            self.db,
+            db,
             self.server.number,
             db_player_info["id"],
             f"{self.player} death location",
@@ -308,8 +306,8 @@ class PlaytimeCommand(Event):
     def text(self):
         return self.match["text"]
 
-    def action(self):
-        result = self.db.query(
+    def action(self, db):
+        result = db.query(
             """
             SELECT playtime_seconds, session_start
             FROM players
@@ -368,10 +366,10 @@ EVENTS = [
 ]
 
 
-def classify(server, line):
+def classify(server, line, db):
     """Return the first event that matches the line, or None."""
     for event_class in EVENTS:
-        event = event_class.parse(server, line)
+        event = event_class.parse(server, line, db)
 
         if event is not None:
             return event

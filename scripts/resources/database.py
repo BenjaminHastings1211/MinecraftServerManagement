@@ -72,6 +72,8 @@ class Database:
         self.timeout = timeout
         self._connection = None
 
+        print("new db connection..", self.host, self.port, self.user, self.database)
+
     def connect(self):
         try:
             self._connection = pymysql.connect(

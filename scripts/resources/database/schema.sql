@@ -96,6 +96,20 @@ CREATE TABLE IF NOT EXISTS sessions (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    filename      VARCHAR(255) NOT NULL,
+    status        ENUM('pending', 'running', 'success', 'failed')
+                  NOT NULL DEFAULT 'pending',
+    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    started_at    DATETIME NULL,
+    executed_at   DATETIME NULL,
+    error_message TEXT NULL,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_migration_filename (filename)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- CREATE TABLE IF NOT EXISTS messages (
 --     id                  INT UNSIGNED NOT NULL AUTO_INCREMENT,
 --     server_id           INT UNSIGNED NOT NULL,

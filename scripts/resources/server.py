@@ -15,8 +15,8 @@ from pathlib import Path
 
 import psutil
 
-from resources.Database import registry, players
-from resources.Database.client import DatabaseClient
+from resources.database import registry, players
+from resources.database.client import DatabaseClient
 from resources.console import Console, strip_formatting
 from resources.properties import Properties
 from resources.rcon import Rcon, RconError

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """mc-start: start servers in the background (or attached with --console)."""
 
-import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+import _bootstrap
 
 import argparse
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run pending SQL migrations (see mcmanager/database/migrations/migrate.py)."""
 
-import scripts._bootstrap  # noqa: F401  (must come first; see scripts/_bootstrap.py)
+import scripts._bootstrap
 
 import argparse
 

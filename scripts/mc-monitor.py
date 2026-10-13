@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """mc-monitor: live dashboard of a server and the Raspberry Pi's health."""
 
-import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+import _bootstrap
 
 import select
 import shutil

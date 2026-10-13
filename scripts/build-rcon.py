@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+import _bootstrap
 
 from mcmanager import cli, tellraw
 

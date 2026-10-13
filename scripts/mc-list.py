@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """mc-list: overview of all servers, or details of one."""
 
-import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+import _bootstrap
 
 from mcmanager import cli
 from mcmanager.server import Server

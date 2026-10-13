@@ -2,7 +2,7 @@
 
 """Initialize the database using mcmanager/database/schema.sql."""
 
-import scripts._bootstrap  # noqa: F401  (must come first; see scripts/_bootstrap.py)
+import scripts._bootstrap
 
 import os
 import shutil

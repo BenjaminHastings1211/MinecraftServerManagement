@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """mc-cmd: send commands to running servers and watch their live output."""
 
-import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+import _bootstrap
 
 import threading
 import time

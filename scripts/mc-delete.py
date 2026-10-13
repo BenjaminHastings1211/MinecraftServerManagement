@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """mc-delete: mark a server inactive, hiding it from every script."""
 
-import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+import _bootstrap
 
 from mcmanager import cli
 

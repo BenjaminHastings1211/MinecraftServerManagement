@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """mc-confirm: accept the Minecraft EULA for servers."""
 
-import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+import _bootstrap
 
 from mcmanager import cli
 

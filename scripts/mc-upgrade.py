@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """mc-upgrade: move servers to a new Minecraft version."""
 
-import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+import _bootstrap
 
 from functools import cache
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """mc-restore: replace a server's world with one of its backups."""
 
-import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+import _bootstrap
 
 import time
 

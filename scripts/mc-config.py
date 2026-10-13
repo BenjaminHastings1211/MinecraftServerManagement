@@ -1,31 +1,59 @@
 #!/usr/bin/env python3
-"""mc-confirm: accept the Minecraft EULA for servers."""
+"""mc-setconfig: interactively override a server.properties value."""
+
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import FuzzyWordCompleter
+from prompt_toolkit.shortcuts import CompleteStyle
 
 from resources import cli
 
 
-EULA_URL = "https://aka.ms/MinecraftEULA"
+def select_property(keys):
+    completer = FuzzyWordCompleter(sorted(keys), WORD=True)
 
+    while True:
+        key = prompt(
+            "Search property: ",
+            completer=completer,
+            complete_while_typing=True,
+            complete_style=CompleteStyle.MULTI_COLUMN,
+        ).strip()
 
-def accept(server):
-    if server.eula_approved():
-        print(f"EULA already accepted for {cli.server_label(server)}.")
-        return
+        if key in keys:
+            return key
 
-    server.accept_eula()
-    print(cli.green(f"EULA accepted for {cli.server_label(server)}."))
+        print(f"Unknown property: {key}. Try again.\n")
 
 
 def main():
     parser = cli.parser(
-        f"Accept the Minecraft EULA ({EULA_URL}) so servers can start.",
-        target=cli.ALL,
+        "Pick a server.properties key and set an override for it in "
+        "config.json. Overrides are applied every time the server starts.",
+        target=cli.ONE,
     )
     args = parser.parse_args()
 
-    print(f"By accepting you agree to the Minecraft EULA: {EULA_URL}\n")
+    (server,) = cli.resolve(args.server)
 
-    return cli.for_each(cli.resolve(args.server), accept)
+    if not server.properties_path.is_file():
+        raise cli.CommandError(f"{cli.server_label(server)} has no server.properties yet.")
+
+    key = select_property(server.server_properties().keys())
+    current = server.get_property(key, "")
+    value = prompt(f"{key} [{current}]: ").strip()
+
+    if not value or value == current:
+        print("Unchanged.")
+        return
+
+    server.config["properties"][key] = value
+    server.save()
+
+    print(cli.green(f"\nUpdated {cli.server_label(server)}"))
+    print(f"  {key} = {value}")
+
+    if server.is_running():
+        print(f"  Takes effect after a restart (mc-stop {cli.short_id(server)}, then mc-start {cli.short_id(server)}).")
 
 
 if __name__ == "__main__":

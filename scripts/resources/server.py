@@ -21,8 +21,6 @@ from resources.console import Console, strip_formatting
 from resources.properties import Properties
 from resources.rcon import Rcon, RconError
 
-from resources.Database.client import DatabaseClient
-
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -686,7 +684,10 @@ class Server:
             self._forget("server")
 
         self.stop_listener()
-        players.logout_all(self.db, self.number)
+
+        with DatabaseClient() as db:
+            players.logout_all(db, self.number)
+
         return True
 
     # Listener

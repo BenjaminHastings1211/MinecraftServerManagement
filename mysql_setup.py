@@ -11,7 +11,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent
-SCHEMA = ROOT / "scripts" / "resources" / "Database" / "schema.sql"
+SCHEMA = ROOT / "scripts" / "resources" / "database" / "schema.sql"
 
 
 def main():

@@ -1,7 +1,7 @@
 """
 Client for the local MariaDB/MySQL 'minecraft' database.
 
-    with Database() as db:
+    with DatabaseClient() as db:
         db.query("INSERT INTO players (name) VALUES (%s)", ["Steve"])
         result = db.query("SELECT * FROM players WHERE name = %s", ["Steve"])
 
@@ -153,7 +153,7 @@ class DatabaseClient:
 
 def query(sql, params=None):
     """One-off query on a fresh connection."""
-    with Database() as db:
+    with DatabaseClient() as db:
         return db.query(sql, params)
 
 

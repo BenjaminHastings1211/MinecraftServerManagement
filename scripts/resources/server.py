@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tarfile
 import time
+import os
 
 from contextlib import contextmanager
 
@@ -30,6 +31,7 @@ SERVERS = ROOT / "servers"
 VERSIONS = ROOT / "versions"
 DEFAULTS = ROOT / "scripts/resources/misc/defaults.json"
 LISTENER = ROOT / "scripts/resources/listener.py"
+VENV_PYTHON = ROOT / ".venv" / "bin" / "python"
 
 DEFAULT_PORT = 25565
 DEFAULT_RCON_PORT = 25575
@@ -708,17 +710,17 @@ class Server:
             return process
 
         env = os.environ.copy()
-        env["ROOT_DIR"] = SCRIPTS
+        env["PYTHONPATH"] = str(LISTENER.parent.parent) + os.pathsep + env.get("PYTHONPATH", "")
 
-        with open(self.listener_log_path,  "a", buffering=1) as log_fd:
+        with open(self.listener_log_path, "a", buffering=1) as log_fd:
             process = subprocess.Popen(
-                [sys.executable, str(LISTENER), self.id],
+                [str(VENV_PYTHON), str(LISTENER), str(self.id)],
                 cwd=LISTENER.parent,
                 stdin=subprocess.DEVNULL,
                 stdout=log_fd,
                 stderr=log_fd,
                 start_new_session=True,
-                env=env
+                env=env,
             )
         self._remember("listener", process.pid)
 

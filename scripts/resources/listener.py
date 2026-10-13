@@ -9,6 +9,7 @@ ends it. Run it by hand to watch what it does; stop it with Ctrl-C.
 
 import time
 import traceback
+import os
 
 from resources import cli, events
 from resources.console import LogFollower, LogLine

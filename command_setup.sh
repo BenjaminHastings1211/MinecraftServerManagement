@@ -7,23 +7,38 @@ BIN="/usr/local/bin"
 
 # Command name -> script filename
 declare -A COMMANDS=(
-    [mc-confirm]="confirm_eula.py"
-    [mc-delete]="delete_server.py"
-    [mc-list]="list_servers.py"
-    [build-rcon]="restart_rcon.py"
-    [mc-cmd]="send_command.py"
-    [mc-backup]="smart_backup.py"
-    [mc-stop]="stop_server.py"
-    [mc-create]="create_server.py"
-    [mc-monitor]="monitor_server.py"
-    [mc-config]="set_config.py"
-    [mc-start]="start_server.py"
-    [mc-upgrade]="upgrade_server.py"
+    [mc-confirm]="mc-confirm.py"
+    [mc-delete]="mc-delete.py"
+    [mc-list]="mc-list.py"
+    [build-rcon]="build-rcon.py"
+    [mc-cmd]="mc-cmd.py"
+    [mc-backup]="mc-backup.py"
+    [mc-stop]="mc-stop.py"
+    [mc-create]="mc-create.py"
+    [mc-monitor]="mc-monitor.py"
+    [mc-config]="mc-config.py"
+    [mc-start]="mc-start.py"
+    [mc-upgrade]="mc-upgrade.py"
 )
 
 echo "Setting up Minecraft commands..."
 echo "Project root: $ROOT"
 echo
+
+# Remove existing Minecraft command symlinks.
+echo "Removing existing Minecraft command symlinks..."
+
+shopt -s nullglob
+
+for link in "$BIN"/mc-* "$BIN"/build-rcon; do
+    if [[ -L "$link" ]]; then
+        echo "Removing: $link"
+        sudo rm "$link"
+    fi
+done
+
+echo
+echo "Creating command symlinks..."
 
 for command in "${!COMMANDS[@]}"; do
     target="$ROOT/scripts/${COMMANDS[$command]}"
@@ -34,16 +49,7 @@ for command in "${!COMMANDS[@]}"; do
         continue
     fi
 
-    if [[ -L "$link" && "$(readlink "$link")" == "$target" ]]; then
-        echo "Already configured: $command"
-        continue
-    fi
-
-    if [[ -e "$link" || -L "$link" ]]; then
-        echo "Replacing existing command: $link"
-    fi
-
-    sudo ln -sfn "$target" "$link"
+    sudo ln -s "$target" "$link"
     echo "Linked: $command -> $target"
 done
 

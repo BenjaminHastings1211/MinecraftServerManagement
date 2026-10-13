@@ -159,9 +159,12 @@ class Server:
     """
 
     def __init__(self, server_id, record=None):
+        self.db = DatabaseClient()
+
         if record is None:
             folder = parse_server_id(server_id)
-            record = registry.get(int(folder.removeprefix("server-")))
+            with self.db as db:
+                record = registry.get(db, int(folder.removeprefix("server-")))
 
             if record is None or record["status"] != registry.ACTIVE:
                 raise FileNotFoundError(f"Server not found: {folder}")
@@ -176,7 +179,7 @@ class Server:
         self.log_path = self.path / "console.log"
         self.listener_log_path = self.path / "listener.log"
         self.backups_path = self.path / "backups"
-        self.db = DatabaseClient()
+        
 
         if not self.path.is_dir():
             raise FileNotFoundError(f"Server not found: {self.id}")

@@ -5,9 +5,6 @@ whether they are active. See schema.sql.
 Rows are dicts with the table's columns:
     {"id": 4, "name": "Survival", "folder": "server-004", "status": "active", ...}
 """
-# nuke this fr
-from resources.Database.client import DatabaseClient
-
 
 ACTIVE = "active"
 INACTIVE = "inactive"
@@ -18,57 +15,54 @@ def folder_name(number):
     return f"server-{number:03d}"
 
 
-def get(number):
+def get(db, number):
     """The row for a server number, or None."""
-    with DatabaseClient() as db:
-        return db.query("SELECT * FROM servers WHERE id = %s", [number]).first()
+    return db.query("SELECT * FROM servers WHERE id = %s", [number]).first()
 
 
-def active():
+def active(db):
     """Every active server's row, by id."""
-    with DatabaseClient() as db:
-        return db.query(
-            "SELECT * FROM servers WHERE status = %s ORDER BY id", [ACTIVE]
-        ).rows
+    return db.query(
+        "SELECT * FROM servers WHERE status = %s ORDER BY id", [ACTIVE]
+    ).rows
 
 
-def add(name):
+def add(db, name):
     """Insert a new active server, give it a folder, and return its row."""
-    with DatabaseClient() as db:
-        number = db.query(
-            "INSERT INTO servers (name, status) VALUES (%s, %s)", [name, ACTIVE]
-        ).lastrowid
+    number = db.query(
+        "INSERT INTO servers (name, status) VALUES (%s, %s)", [name, ACTIVE]
+    ).lastrowid
 
-        db.query(
-            "UPDATE servers SET folder = %s WHERE id = %s",
-            [folder_name(number), number],
-        )
+    db.query(
+        "UPDATE servers SET folder = %s WHERE id = %s",
+        [folder_name(number), number],
+    )
 
-        return db.query("SELECT * FROM servers WHERE id = %s", [number]).first()
+    return get(db, number)
 
 
-def remove(number):
+def remove(db, number):
     """Delete a row outright; only for undoing a failed add()."""
-    with DatabaseClient() as db:
-        db.query("DELETE FROM servers WHERE id = %s", [number])
+    db.query("DELETE FROM servers WHERE id = %s", [number])
 
 
-def set_status(number, status):
-    with DatabaseClient() as db:
-        db.query("UPDATE servers SET status = %s WHERE id = %s", [status, number])
+def set_status(db, number, status):
+    db.query(
+        "UPDATE servers SET status = %s WHERE id = %s",
+        [status, number],
+    )
 
 
 # The processes a server can have running; see the *_pid columns.
 PROCESS_ROLES = ("server", "listener")
 
 
-def set_process(number, role, pid=None, started=None):
+def set_process(db, number, role, pid=None, started=None):
     """Record a running process (or clear it, with no pid)."""
     if role not in PROCESS_ROLES:
         raise ValueError(f"Unknown process role: {role}")
 
-    with DatabaseClient() as db:
-        db.query(
-            f"UPDATE servers SET {role}_pid = %s, {role}_started = %s WHERE id = %s",
-            [pid, started, number],
-        )
+    db.query(
+        f"UPDATE servers SET {role}_pid = %s, {role}_started = %s WHERE id = %s",
+        [pid, started, number],
+    )

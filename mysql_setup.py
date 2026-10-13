@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Initialize the LutzCraft database using resources/schema.sql."""
+"""Initialize the database setup using resources/schema.sql."""
 
 import os
 import shutil
@@ -11,7 +11,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent
-SCHEMA = ROOT / "scripts" / "resources" / "schema.sql"
+SCHEMA = ROOT / "scripts" / "resources" / "Database" / "schema.sql"
 
 
 def main():

@@ -61,7 +61,7 @@ class Result:
         return next(iter(row.values())) if row else None
 
 
-class Database:
+class DatabaseClient:
     def __init__(self, host=HOST, port=PORT, user=USER, password=PASSWORD,
                  database=NAME, timeout=5):
         self.host = host
@@ -71,8 +71,6 @@ class Database:
         self.database = database
         self.timeout = timeout
         self._connection = None
-
-        print("new db connection..", self.host, self.port, self.user, self.database)
 
     def connect(self):
         try:

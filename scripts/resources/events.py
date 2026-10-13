@@ -14,8 +14,8 @@ event.match["name"].
 """
 
 from datetime import datetime, timedelta
-
-from resources import players, locations, tellraw
+from resources.Database import players, locations
+from resources import tellraw
 from resources.console import (
     CHAT,
     JOINED,

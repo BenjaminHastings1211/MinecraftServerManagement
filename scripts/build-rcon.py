@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from resources import cli, tellraw
-from resources.database import Database;
 
 def main():
     servers = cli.resolve("all")

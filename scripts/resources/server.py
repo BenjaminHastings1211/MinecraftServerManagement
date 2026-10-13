@@ -14,19 +14,20 @@ from pathlib import Path
 
 import psutil
 
-from resources import registry
-from resources import players
+from resources.Database import registry
+from resources.Database import players
 from resources.console import Console, strip_formatting
 from resources.properties import Properties
 from resources.rcon import Rcon, RconError
-from resources.database import Database
+
+from resources.Database.client import DatabaseClient
 
 
 ROOT = Path(__file__).resolve().parents[2]
 
 SERVERS = ROOT / "servers"
 VERSIONS = ROOT / "versions"
-DEFAULTS = ROOT / "scripts/resources/defaults.json"
+DEFAULTS = ROOT / "scripts/resources/misc/defaults.json"
 LISTENER = ROOT / "scripts/listener.py"
 
 DEFAULT_PORT = 25565
@@ -175,7 +176,7 @@ class Server:
         self.log_path = self.path / "console.log"
         self.listener_log_path = self.path / "listener.log"
         self.backups_path = self.path / "backups"
-        self.db = Database()
+        self.db = DatabaseClient()
 
         if not self.path.is_dir():
             raise FileNotFoundError(f"Server not found: {self.id}")

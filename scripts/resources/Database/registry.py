@@ -5,8 +5,8 @@ whether they are active. See schema.sql.
 Rows are dicts with the table's columns:
     {"id": 4, "name": "Survival", "folder": "server-004", "status": "active", ...}
 """
-
-from resources.database import Database
+# nuke this fr
+from resources.Database.client import DatabaseClient
 
 
 ACTIVE = "active"
@@ -20,13 +20,13 @@ def folder_name(number):
 
 def get(number):
     """The row for a server number, or None."""
-    with Database() as db:
+    with DatabaseClient() as db:
         return db.query("SELECT * FROM servers WHERE id = %s", [number]).first()
 
 
 def active():
     """Every active server's row, by id."""
-    with Database() as db:
+    with DatabaseClient() as db:
         return db.query(
             "SELECT * FROM servers WHERE status = %s ORDER BY id", [ACTIVE]
         ).rows
@@ -34,7 +34,7 @@ def active():
 
 def add(name):
     """Insert a new active server, give it a folder, and return its row."""
-    with Database() as db:
+    with DatabaseClient() as db:
         number = db.query(
             "INSERT INTO servers (name, status) VALUES (%s, %s)", [name, ACTIVE]
         ).lastrowid
@@ -49,12 +49,12 @@ def add(name):
 
 def remove(number):
     """Delete a row outright; only for undoing a failed add()."""
-    with Database() as db:
+    with DatabaseClient() as db:
         db.query("DELETE FROM servers WHERE id = %s", [number])
 
 
 def set_status(number, status):
-    with Database() as db:
+    with DatabaseClient() as db:
         db.query("UPDATE servers SET status = %s WHERE id = %s", [status, number])
 
 
@@ -67,7 +67,7 @@ def set_process(number, role, pid=None, started=None):
     if role not in PROCESS_ROLES:
         raise ValueError(f"Unknown process role: {role}")
 
-    with Database() as db:
+    with DatabaseClient() as db:
         db.query(
             f"UPDATE servers SET {role}_pid = %s, {role}_started = %s WHERE id = %s",
             [pid, started, number],

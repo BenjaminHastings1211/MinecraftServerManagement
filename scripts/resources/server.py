@@ -14,8 +14,8 @@ from pathlib import Path
 
 import psutil
 
-from resources.Database import registry
-from resources.Database import players
+from resources.Database import registry, players
+from resources.Database.client import DatabaseClient
 from resources.console import Console, strip_formatting
 from resources.properties import Properties
 from resources.rcon import Rcon, RconError
@@ -25,6 +25,7 @@ from resources.Database.client import DatabaseClient
 
 ROOT = Path(__file__).resolve().parents[2]
 
+SCRIPTS = ROOT / "scripts"
 SERVERS = ROOT / "servers"
 VERSIONS = ROOT / "versions"
 DEFAULTS = ROOT / "scripts/resources/misc/defaults.json"
@@ -159,11 +160,9 @@ class Server:
     """
 
     def __init__(self, server_id, record=None):
-        self.db = DatabaseClient()
-
         if record is None:
             folder = parse_server_id(server_id)
-            with self.db as db:
+            with DatabaseClient() as db:
                 record = registry.get(db, int(folder.removeprefix("server-")))
 
             if record is None or record["status"] != registry.ACTIVE:
@@ -179,7 +178,7 @@ class Server:
         self.log_path = self.path / "console.log"
         self.listener_log_path = self.path / "listener.log"
         self.backups_path = self.path / "backups"
-        
+        self.db = DatabaseClient()
 
         if not self.path.is_dir():
             raise FileNotFoundError(f"Server not found: {self.id}")
@@ -193,12 +192,12 @@ class Server:
     def all(cls):
         """Every active server, sorted by ID. Broken ones are skipped."""
         servers = []
-
-        for record in registry.active():
-            try:
-                servers.append(cls(record["folder"], record))
-            except (OSError, ValueError):
-                continue
+        with DatabaseClient() as db:
+            for record in registry.active(db):
+                try:
+                    servers.append(cls(record["folder"], record))
+                except (OSError, ValueError):
+                    continue
 
         return servers
 
@@ -219,14 +218,16 @@ class Server:
             config = json.load(file)
 
         jar = find_version_jar(version)
-        record = registry.add(name)
+        with DatabaseClient() as db:
+            record = registry.add(db, name)
         server_path = SERVERS / record["folder"]
 
         try:
             server_path.mkdir(parents=True)
         except BaseException:
-            registry.remove(record["id"])
-            raise
+            with DatabaseClient() as db:
+                registry.remove(db, record["id"])
+                raise
 
         try:
             shutil.copy2(jar, server_path / "server.jar")
@@ -248,7 +249,10 @@ class Server:
 
         except BaseException:
             shutil.rmtree(server_path, ignore_errors=True)
-            registry.remove(record["id"])
+
+            with DatabaseClient() as db:
+                registry.remove(db, record["id"])
+            
             raise
 
         return server
@@ -596,10 +600,12 @@ class Server:
 
     def _remember(self, role, pid):
         """Record a process we just started in the servers table."""
-        registry.set_process(self.number, role, pid, psutil.Process(pid).create_time())
+        with DatabaseClient() as db:
+            registry.set_process(db, self.number, role, pid, psutil.Process(pid).create_time())
 
     def _forget(self, role):
-        registry.set_process(self.number, role)
+        with DatabaseClient() as db:
+            registry.set_process(db, self.number, role)
 
     def _tracked_process(self, role, is_ours):
         """
@@ -607,7 +613,8 @@ class Server:
         "listener"), or None. A stale record (process gone or PID
         reused) is cleared.
         """
-        record = registry.get(self.number) or {}
+        with DatabaseClient() as db:
+            record = registry.get(db, self.number) or {}
         pid = record.get(f"{role}_pid")
 
         if pid is None:
@@ -700,6 +707,9 @@ class Server:
         if process is not None:
             return process
 
+        env = os.environ.copy()
+        env["ROOT_DIR"] = SCRIPTS
+
         with open(self.listener_log_path,  "a", buffering=1) as log_fd:
             process = subprocess.Popen(
                 [sys.executable, str(LISTENER), self.id],
@@ -708,6 +718,7 @@ class Server:
                 stdout=log_fd,
                 stderr=log_fd,
                 start_new_session=True,
+                env=env
             )
         self._remember("listener", process.pid)
 
@@ -948,7 +959,8 @@ class Server:
             raise RuntimeError(f"Stop {self.name} ({self.id}) before deleting it.")
 
         self.stop_listener()
-        registry.set_status(self.number, registry.INACTIVE)
+        with DatabaseClient() as db:
+            registry.set_status(db, self.number, registry.INACTIVE)
         self.record["status"] = registry.INACTIVE
 
     def update_version(self, version_file, version):

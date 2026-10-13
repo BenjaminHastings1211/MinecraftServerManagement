@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """mc-list: overview of all servers, or details of one."""
 
-from resources import cli
-from resources.server import Server
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
+from mcmanager import cli
+from mcmanager.server import Server
 
 
 def status(server, process):

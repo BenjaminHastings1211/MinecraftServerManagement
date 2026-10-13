@@ -14,9 +14,9 @@ event.match["name"].
 """
 
 from datetime import datetime, timedelta
-from resources.database import players, locations
-from resources import tellraw
-from resources.console import (
+from mcmanager.database import players, locations
+from mcmanager import tellraw
+from mcmanager.console import (
     CHAT,
     JOINED,
     LEFT,

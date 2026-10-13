@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """mc-cmd: send commands to running servers and watch their live output."""
 
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
 import threading
 import time
 
 from collections import deque
 
-from resources import cli
-from resources.console import LogFollower, LogLine
+from mcmanager import cli
+from mcmanager.console import LogFollower, LogLine
 
 
 HISTORY_LINES = 10

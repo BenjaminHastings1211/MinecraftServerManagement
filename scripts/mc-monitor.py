@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """mc-monitor: live dashboard of a server and the Raspberry Pi's health."""
 
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
 import select
 import shutil
 import subprocess
@@ -14,7 +16,7 @@ from datetime import datetime
 
 import psutil
 
-from resources import cli
+from mcmanager import cli
 
 
 REFRESH_INTERVAL = 1

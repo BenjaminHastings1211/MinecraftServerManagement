@@ -1,6 +1,6 @@
 -- Tables for the minecraft database. Safe to re-run.
 --
---     mariadb -u minecraftAPI -p minecraft < resources/schema.sql
+--     mariadb -u minecraftAPI -p minecraft < mcmanager/schema.sql
 
 CREATE TABLE IF NOT EXISTS servers (
     id         INT UNSIGNED NOT NULL AUTO_INCREMENT,

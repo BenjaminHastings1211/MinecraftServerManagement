@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """mc-create: create a new server from defaults.json."""
 
-from resources import cli, versions
-from resources.server import Server
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
+from mcmanager import cli, versions
+from mcmanager.server import Server
 
 
 def main():

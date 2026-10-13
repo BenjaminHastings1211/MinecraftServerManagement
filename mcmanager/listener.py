@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 mc-listen: follow a server's log and run an action for each event
-(see resources/events.py).
+(see mcmanager/events.py).
 
 mc-start launches this in the background for every server and mc-stop
 ends it. Run it by hand to watch what it does; stop it with Ctrl-C.
@@ -11,9 +11,9 @@ import time
 import traceback
 import os
 
-from resources import cli, events
-from resources.console import LogFollower, LogLine
-from resources import tellraw
+from mcmanager import cli, events
+from mcmanager.console import LogFollower, LogLine
+from mcmanager import tellraw
 
 
 POLL_INTERVAL = 0.25

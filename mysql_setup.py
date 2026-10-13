@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-"""Initialize the database setup using resources/schema.sql."""
+"""Initialize the database using mcmanager/database/schema.sql."""
+
+import scripts._bootstrap  # noqa: F401  (must come first; see scripts/_bootstrap.py)
 
 import os
 import shutil
@@ -11,7 +13,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent
-SCHEMA = ROOT / "scripts" / "resources" / "database" / "schema.sql"
+SCHEMA = ROOT / "mcmanager" / "database" / "schema.sql"
 
 
 def main():

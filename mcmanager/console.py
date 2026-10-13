@@ -3,7 +3,7 @@ Two-way link to a running server, for mc-cmd and your own scripts.
 
 Commands go over RCON; output is read live from logs/latest.log.
 
-    from resources.server import Server
+    from mcmanager.server import Server
 
     with Server(2).console() as console:
         print(console.command("list"))
@@ -25,7 +25,7 @@ import time
 
 from dataclasses import dataclass
 
-from resources.rcon import RconError
+from mcmanager.rcon import RconError
 
 
 # Minecraft formatting codes, e.g. §a (green) or §l (bold).

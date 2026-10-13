@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """mc-start: start servers in the background (or attached with --console)."""
 
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
 import argparse
 
-from resources import cli
+from mcmanager import cli
 
 
 def start(server, console=False, wait=True):

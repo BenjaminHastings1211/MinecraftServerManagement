@@ -6,7 +6,6 @@ import subprocess
 import sys
 import tarfile
 import time
-import os
 
 from contextlib import contextmanager
 
@@ -15,21 +14,19 @@ from pathlib import Path
 
 import psutil
 
-from resources.database import registry, players
-from resources.database.client import DatabaseClient
-from resources.console import Console, strip_formatting
-from resources.properties import Properties
-from resources.rcon import Rcon, RconError
+from mcmanager.database import registry, players
+from mcmanager.database.client import DatabaseClient
+from mcmanager.console import Console, strip_formatting
+from mcmanager.properties import Properties
+from mcmanager.rcon import Rcon, RconError
+from mcmanager.paths import ROOT, SERVERS, VERSIONS, DEFAULTS, VENV_PYTHON
 
 
-ROOT = Path(__file__).resolve().parents[2]
+LISTENER_MODULE = "mcmanager.listener"
 
-SCRIPTS = ROOT / "scripts"
-SERVERS = ROOT / "servers"
-VERSIONS = ROOT / "versions"
-DEFAULTS = ROOT / "scripts/resources/misc/defaults.json"
-LISTENER = ROOT / "scripts/resources/listener.py"
-VENV_PYTHON = ROOT / ".venv" / "bin" / "python"
+# Where the listener lived before the restructure, so a listener started
+# by the old code is still recognised (and stopped) rather than duplicated.
+LEGACY_LISTENER = ROOT / "scripts" / "resources" / "listener.py"
 
 DEFAULT_PORT = 25565
 DEFAULT_RCON_PORT = 25575
@@ -435,7 +432,7 @@ class Server:
     def console(self):
         """
         A two-way Console (RCON commands + live log); use as a
-        context manager. See resources/console.py.
+        context manager. See mcmanager/console.py.
         """
         return Console(self)
 
@@ -696,7 +693,10 @@ class Server:
         """The running listener's psutil.Process, or None."""
         return self._tracked_process(
             "listener",
-            lambda process: process.cmdline()[1:] == [str(LISTENER), self.id],
+            lambda process: process.cmdline()[1:] in (
+                ["-m", LISTENER_MODULE, self.id],
+                [str(LEGACY_LISTENER), self.id],
+            ),
         )
 
     def ensure_listener(self):
@@ -710,18 +710,15 @@ class Server:
         if process is not None:
             return process
 
-        env = os.environ.copy()
-        env["PYTHONPATH"] = str(LISTENER.parent.parent) + os.pathsep + env.get("PYTHONPATH", "")
-
+        # cwd=ROOT puts the project on the listener's import path for -m.
         with open(self.listener_log_path, "a", buffering=1) as log_fd:
             process = subprocess.Popen(
-                [str(VENV_PYTHON), str(LISTENER), str(self.id)],
-                cwd=LISTENER.parent,
+                [str(VENV_PYTHON), "-m", LISTENER_MODULE, str(self.id)],
+                cwd=ROOT,
                 stdin=subprocess.DEVNULL,
                 stdout=log_fd,
                 stderr=log_fd,
                 start_new_session=True,
-                env=env,
             )
         self._remember("listener", process.pid)
 

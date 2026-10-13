@@ -1,7 +1,7 @@
 """
 Build /tellraw commands piece by piece.
 
-    from resources import tellraw
+    from mcmanager import tellraw
 
     message = (
         tellraw.to_player("Steve")

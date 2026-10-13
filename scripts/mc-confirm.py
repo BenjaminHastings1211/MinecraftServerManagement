@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """mc-confirm: accept the Minecraft EULA for servers."""
 
-from resources import cli
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
+from mcmanager import cli
 
 
 EULA_URL = "https://aka.ms/MinecraftEULA"

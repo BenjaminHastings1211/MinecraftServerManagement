@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-from resources import cli, tellraw
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
+from mcmanager import cli, tellraw
 
 def main():
     servers = cli.resolve("all")

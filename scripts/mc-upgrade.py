@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """mc-upgrade: move servers to a new Minecraft version."""
 
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
 from functools import cache
 
-from resources import cli, versions
+from mcmanager import cli, versions
 
 
 RESTART_WARNING_SECONDS = 30

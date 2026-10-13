@@ -1,10 +1,10 @@
 """
 Waypoint management for Minecraft servers.
 
-    from resources import locations
-    from resources.database import Database
+    from mcmanager.database import locations
+    from mcmanager.database.client import DatabaseClient
 
-    with Database() as db:
+    with DatabaseClient() as db:
         # Create a waypoint.
         loc = locations.create(
             db=db,

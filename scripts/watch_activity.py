@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """mc-watch: print every line of a running server's activity, fully parsed."""
 
-from resources import cli
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
+from mcmanager import cli
 
 
 def main():

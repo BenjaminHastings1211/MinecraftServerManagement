@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """mc-stop: cleanly stop running servers."""
 
-from resources import cli
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
+from mcmanager import cli
 
 
 def stop(server, timeout):

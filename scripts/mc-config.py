@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """mc-setconfig: interactively override a server.properties value."""
 
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import FuzzyWordCompleter
 from prompt_toolkit.shortcuts import CompleteStyle
 
-from resources import cli
+from mcmanager import cli
 
 
 def select_property(keys):

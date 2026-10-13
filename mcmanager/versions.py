@@ -3,8 +3,9 @@
 import json
 import urllib.request
 
-from resources import server as _server
-from resources.server import version_key  # noqa: F401  (re-exported)
+from mcmanager import server as _server
+from mcmanager.paths import VERSIONS
+from mcmanager.server import version_key  # noqa: F401  (re-exported)
 
 
 MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
@@ -29,7 +30,7 @@ def download(version):
     Return the local JAR for a version, downloading it from Mojang
     first if needed.
     """
-    jar = _server.VERSIONS / _server.version_to_filename(version)
+    jar = VERSIONS / _server.version_to_filename(version)
 
     if jar.is_file():
         return jar
@@ -42,7 +43,7 @@ def download(version):
 
     url = _fetch_json(entry["url"])["downloads"]["server"]["url"]
 
-    _server.VERSIONS.mkdir(exist_ok=True)
+    VERSIONS.mkdir(exist_ok=True)
     partial = jar.with_name(jar.name + ".partial")
 
     try:

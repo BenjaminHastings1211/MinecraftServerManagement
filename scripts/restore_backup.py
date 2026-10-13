@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """mc-restore: replace a server's world with one of its backups."""
 
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
 import time
 
-from resources import cli
+from mcmanager import cli
 
 
 def choose_backup(server, choice):

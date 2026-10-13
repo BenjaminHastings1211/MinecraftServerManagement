@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-from scripts.resources.database.migrations import run
-from scripts.resources.database.client import DatabaseClient
+import scripts._bootstrap  # noqa: F401  (must come first; see scripts/_bootstrap.py)
+
+from mcmanager.database.migrations import run
+from mcmanager.database.client import DatabaseClient
 
 with DatabaseClient() as db:
     run(db)

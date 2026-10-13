@@ -3,7 +3,7 @@ Shared command-line plumbing for the mc-* scripts.
 
 Every script follows the same shape:
 
-    from resources import cli
+    from mcmanager import cli
 
     def main():
         parser = cli.parser("Do something.", target=cli.ALL)
@@ -21,7 +21,7 @@ from datetime import datetime
 
 import psutil
 
-from resources.server import Server
+from mcmanager.server import Server
 
 
 ONE = "one"

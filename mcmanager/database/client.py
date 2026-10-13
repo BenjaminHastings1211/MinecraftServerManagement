@@ -11,8 +11,9 @@ Client for the local MariaDB/MySQL 'minecraft' database.
 Always pass values through params (the %s placeholders) rather than
 formatting them into the SQL string; the driver escapes them safely.
 
-Connection settings can be overridden with the MC_DB_HOST, MC_DB_PORT,
-MC_DB_USER, MC_DB_PASSWORD and MC_DB_NAME environment variables.
+Connection settings come from the DB_HOST, DB_PORT, DB_USER,
+DB_PASSWORD and DB_NAME environment variables, read from the project's
+.env file when a client is created. Arguments override them.
 """
 
 import os
@@ -22,14 +23,8 @@ from dataclasses import dataclass, field
 import pymysql
 import pymysql.cursors
 
+from mcmanager.paths import ENV_FILE
 
-load_dotenv()
-
-HOST = os.environ.get("DB_HOST", "127.0.0.1")
-PORT = int(os.environ.get("DB_PORT", "3306"))
-USER = os.environ.get("DB_USER", "")
-PASSWORD = os.environ.get("DB_PASSWORD", "")
-NAME = os.environ.get("DB_NAME", "minecraft")
 
 class DatabaseError(RuntimeError):
     pass
@@ -62,13 +57,15 @@ class Result:
 
 
 class DatabaseClient:
-    def __init__(self, host=HOST, port=PORT, user=USER, password=PASSWORD,
-                 database=NAME, timeout=5):
-        self.host = host
-        self.port = port
-        self.user = user
-        self.password = password
-        self.database = database
+    def __init__(self, host=None, port=None, user=None, password=None,
+                 database=None, timeout=5):
+        load_dotenv(ENV_FILE)
+
+        self.host = host or os.environ.get("DB_HOST", "127.0.0.1")
+        self.port = port or int(os.environ.get("DB_PORT", "3306"))
+        self.user = user or os.environ.get("DB_USER", "")
+        self.password = password or os.environ.get("DB_PASSWORD", "")
+        self.database = database or os.environ.get("DB_NAME", "minecraft")
         self.timeout = timeout
         self._connection = None
 

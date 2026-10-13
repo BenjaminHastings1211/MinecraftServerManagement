@@ -2,10 +2,10 @@
 The players table: one row per player per server, tracking sessions
 and playtime. See schema.sql.
 
-    from resources import players
-    from resources.database import Database
+    from mcmanager.database import players
+    from mcmanager.database.client import DatabaseClient
 
-    with Database() as db:
+    with DatabaseClient() as db:
         players.login(db, 2, "slimshady767")
         seconds = players.logout(db, 2, "slimshady767")
 

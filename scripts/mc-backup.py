@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """mc-backup: back up worlds (pausing saves on running servers) and list backups."""
 
-from resources import cli
+import _bootstrap  # noqa: F401  (must come first; see _bootstrap.py)
+
+from mcmanager import cli
 
 
 def backup(server, force):

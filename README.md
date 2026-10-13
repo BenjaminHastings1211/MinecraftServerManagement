@@ -4,7 +4,23 @@ Minecraft server management tools for Raspberry Pi.
 
 ## Setup
 
-### 1. Set up commands
+### 1. Clone the repository
+
+Clone the repository and navigate to the project directory.
+
+### 2. Set up the Python environment
+
+Create and activate a virtual environment, then install the required dependencies.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install -r requirements.txt
+```
+
+**Note:** Activate the virtual environment whenever you work on the project so the scripts can access the installed dependencies.
+
+### 3. Set up commands
 
 From the project root, run:
 
@@ -12,13 +28,15 @@ From the project root, run:
 ./command_setup.sh
 ```
 
-### 2. Start MariaDB
+### 4. Start MariaDB
+
+Enable MariaDB to start automatically and start it now:
 
 ```bash
 sudo systemctl enable --now mariadb
 ```
 
-### 3. Configure the database
+### 5. Configure the database
 
 Create a `.env` file in the project root:
 
@@ -36,17 +54,19 @@ DB_PASSWORD=YOUR_DATABASE_PASSWORD
 DB_NAME=minecraft
 ```
 
-### 4. Initialize the database
+### 6. Initialize the database
 
 Run the setup script to load the database schema:
 
 ```bash
-./mysql_setup
+./mysql_setup.py
 ```
 
-This script still needs to be created. It will connect using `.env` and load `resources/schema.sql`.
+Ensure the setup script exists and is executable. It uses `.env` to connect to MariaDB and load the database schema.
 
-### 5. Verify setup
+### 7. Verify setup
+
+Start a Minecraft server:
 
 ```bash
 mc-start

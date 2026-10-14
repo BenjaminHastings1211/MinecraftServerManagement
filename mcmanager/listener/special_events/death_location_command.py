@@ -48,3 +48,6 @@ class DeathLocationCommand(Event):
             .text(" ")
             .text(result["z_position"], bold=True, color="#ff0000")
         )
+
+    def get_details(self):
+        return "!find death - Shows the coordinates of your last death on this server."

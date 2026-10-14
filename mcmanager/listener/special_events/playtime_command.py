@@ -59,3 +59,6 @@ class PlaytimeCommand(Event):
                 color="#ffaa00",
             )
         )
+
+    def get_details(self):
+        return "!playtime - Shows your total playtime and current session time for this server."

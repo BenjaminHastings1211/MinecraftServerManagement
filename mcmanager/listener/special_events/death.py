@@ -1,6 +1,6 @@
 import re
 
-from mcmanager import tellraw
+from mcmanager import server, tellraw
 from mcmanager.database import players, locations
 from mcmanager.listener.base import Event, duration
 
@@ -16,9 +16,6 @@ class Death(Event):
         if event is None:
             return None
 
-        # Compare Minecraft's death scoreboard with the database.
-        current_count = server.get_death_count(event.player)
-
         result = db.query(
             """
             SELECT death_count
@@ -32,6 +29,9 @@ class Death(Event):
             return None
 
         previous_count = result["death_count"] or 0
+
+        # Compare Minecraft's death scoreboard with the database.
+        current_count = server.get_death_count(event.player)
 
         # Ignore death messages that do not correspond to a new death.
         if current_count <= previous_count:

@@ -186,3 +186,16 @@ def online(db, server_id):
         _SELECT + "WHERE server_id = %s AND online ORDER BY mc_name",
         [server_id],
     ).rows
+
+def increment_message_count(db, server_id, mc_name):
+    """Increment the message count for a specific player"""
+    return db.query(
+        """
+            UPDATE players
+            SET
+                message_count = message_count + 1
+            WHERE
+                server_id = %s AND
+                mc_name = %s
+        """, [sever_id, mc_name]
+    )

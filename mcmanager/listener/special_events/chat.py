@@ -13,3 +13,6 @@ class Chat(Event):
     @property
     def text(self):
         return self.match["text"]
+
+    def action(self, db):
+        increment_message_count(db, self.server, self.player)

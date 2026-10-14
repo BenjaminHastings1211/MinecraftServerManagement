@@ -15,4 +15,5 @@ class Chat(Event):
         return self.match["text"]
 
     def action(self, db):
-        increment_message_count(db, self.server, self.player)
+        #increment_message_count(db, self.server, self.player)
+        pass

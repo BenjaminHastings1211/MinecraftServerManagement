@@ -20,8 +20,6 @@ def show(line):
         print(cli.orange(line.raw))
     elif line.level in ("ERROR", "FATAL"):
         print(cli.red(line.raw))
-    elif line.chat or line.joined or line.left:
-        print(cli.bold(line.raw))
     else:
         print(line.raw)
 

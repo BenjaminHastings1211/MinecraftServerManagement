@@ -22,9 +22,6 @@ def main():
                 "source": line.source,
                 "level": line.level,
                 "message": line.message,
-                "chat": line.chat,
-                "joined": line.joined,
-                "left": line.left,
             })
 
 

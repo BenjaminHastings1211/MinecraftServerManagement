@@ -9,11 +9,7 @@ Commands go over RCON; output is read live from logs/latest.log.
         print(console.command("list"))
 
         for line in console.lines():          # blocks, yields new lines
-            if line.joined:
-                console.command(f"msg {line.joined} Welcome back!")
-            elif line.chat:
-                player, text = line.chat
-                ...
+            print(line.message)
 
 Console is thread-safe: one thread can read lines() while others
 send commands.
@@ -34,14 +30,6 @@ FORMATTING = re.compile("§[0-9a-fk-or]", re.IGNORECASE)
 _LOG_LINE = re.compile(
     r"^\[(?P<time>[\d:]+)\] \[(?P<source>[^\]]+)/(?P<level>[A-Z]+)\]: (?P<message>.*)$"
 )
-# Server messages (LogLine.message) for chat, joins and leaves. Newer
-# versions prefix joins and leaves with "System chat: ".
-CHAT = re.compile(r"^(?:\[Not Secure\] )?<(?P<player>[^>]+)> ^\!(?P<text>.*)$")
-JOINED = re.compile(r"^(?:System chat: )?(?P<player>\w+) joined the game$")
-LEFT = re.compile(r"^(?:System chat: )?(?P<player>\w+)(?: left the game| lost connection: .*)$")
-PLAYTIME_COMMAND = re.compile(r"^(?:\[Not Secure\] )?<(?P<player>[^>]+)> \!playtime$")
-DEATH_LOCATION_COMMAND = re.compile(r"^(?:\[Not Secure\] )?<(?P<player>[^>]+)> \!find death$")
-DEATH = re.compile(r"^(?:System chat: )?(?P<player>\w+)(?:\s.*)?$")
 
 
 def strip_formatting(text):
@@ -68,43 +56,6 @@ class LogLine:
             return cls(raw=raw, message=raw)
 
         return cls(raw=raw, **match.groupdict())
-
-    def _match(self, pattern):
-        # Only real server messages, so a player can't fake a join via chat.
-        if self.source != "Server thread":
-            return None
-
-        return pattern.match(self.message)
-
-    @property
-    def chat(self):
-        """(player, text) for a chat message, else None."""
-        match = self._match(CHAT)
-        return (match["player"], match["text"]) if match else None
-
-    @property
-    def joined(self):
-        """Player name if this line is a join, else None."""
-        match = self._match(JOINED)
-        return match["player"] if match else None
-
-    @property
-    def left(self):
-        """Player name if this line is a leave, else None."""
-        match = self._match(LEFT)
-        return match["player"] if match else None
-
-    @property
-    def custom_command(self):
-        """(player, text) for a chat message, else None."""
-        match = self._match(CUSTOM_COMMAND)
-        return (match["player"], match["text"]) if match else None
-
-    # @property
-    # def death(self):
-    #     """(player, to_entity) for a death message, else None."""
-    #     match = self._match(DEATH)
-    #     return (match["player"], match["to_entity"]) if match else None
 
     def __str__(self):
         return self.raw

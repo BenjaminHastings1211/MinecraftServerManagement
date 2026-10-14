@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS players (
     -- Finished sessions only; add the current one for a live total.
     playtime_seconds BIGINT UNSIGNED NOT NULL DEFAULT 0,
     online           BOOLEAN NOT NULL DEFAULT FALSE,
+    messasge_count   BIGINT NOT NULL DEFAULT 0,
 
     PRIMARY KEY (id),
     UNIQUE KEY server_player (server_id, mc_name),

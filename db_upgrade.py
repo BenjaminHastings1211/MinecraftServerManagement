@@ -11,15 +11,10 @@ from mcmanager.database.migrations import migrate
 
 def main():
     parser = argparse.ArgumentParser(description="Run pending SQL migrations.")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="list what would run without changing the database",
-    )
     args = parser.parse_args()
 
     with DatabaseClient() as db:
-        migrate.run(db, dry_run=args.dry_run)
+        migrate.run(db)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 """
-SQL migration runner. Run it with ./db_upgrade.py (--dry-run to preview).
+SQL migration runner. Run it with ./db_upgrade.py.
 
 Each *.sql file in this folder is one migration, run once in filename
-order (001_..., 002_...) and tracked by filename in schema_migrations:
+order and tracked by filename in schema_migrations:
 
     pending -> running -> success
                        -> failed (error saved, exception re-raised)
@@ -41,46 +41,39 @@ def ensure_table(db):
         """
     )
 
-def run(db, dry_run=False):
+
+def run(db):
     """
     Run pending SQL migrations in filename order.
 
-    Migrations with pending or failed status are retried.
+    Migrations with pending, running, or failed status are retried.
     Successful migrations are skipped.
 
     Args:
         db: An open DatabaseClient connection.
-        dry_run: Show pending migrations without changing the database.
 
     Returns:
         Number of migrations successfully executed.
     """
     migrations_dir = Path(__file__).resolve().parent
 
-    # A dry run reads history if it exists but never creates or writes it.
-    if dry_run:
-        has_table = db.query("SHOW TABLES LIKE 'schema_migrations'").rows
-    else:
-        ensure_table(db)
-        has_table = True
+    ensure_table(db)
 
     applied = {
         row["filename"]: row["status"]
         for row in db.query(
             "SELECT filename, status FROM schema_migrations"
         ).rows
-    } if has_table else {}
+    }
 
     executed = 0
 
     for path in sorted(migrations_dir.glob("*.sql")):
         filename = path.name
 
-
         if applied.get(filename) == "success":
             print(f"[SKIP] {filename}")
             continue
-
 
         sql = path.read_text(encoding="utf-8").strip()
 
@@ -94,11 +87,7 @@ def run(db, dry_run=False):
                 "Use one statement per migration file."
             )
 
-        if dry_run:
-            print(f"[DRY RUN] Would execute {filename}")
-            continue
-
-        # Ensure the migration is recorded before attempting its SQL.
+        # Record the migration before attempting its SQL.
         db.query(
             """
             INSERT INTO schema_migrations (filename, status)
@@ -161,9 +150,6 @@ def run(db, dry_run=False):
         print(f"[OK] {filename}")
         executed += 1
 
-    if dry_run:
-        print("Dry run complete. No migrations executed.")
-    else:
-        print(f"Migration run complete. {executed} migration(s) executed.")
+    print(f"Migration run complete. {executed} migration(s) executed.")
 
     return executed

@@ -91,7 +91,7 @@ mc-start
 | `mc-config` | Configure a server |
 | `mc-monitor` | Monitor a server |
 | `mc-cmd` | Send a Minecraft command |
-| `build-rcon` | Restart the RCON utility |
+| `build-rcon` | Restart the RCON utility (`-q` to skip the in-game message) |
 
 ## Project layout
 

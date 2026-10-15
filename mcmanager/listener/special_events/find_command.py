@@ -25,7 +25,7 @@ class FindCommand(Event):
 
         if db_target_player_info is None:
             self.server.tell(
-                tellraw.to_player(self.player).text("No location found for player.")
+                tellraw.to_player(self.player).text("Player not found")
             )
             return
 

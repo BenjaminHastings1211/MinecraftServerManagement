@@ -51,4 +51,4 @@ class DeathLocationCommand(Event):
 
     @staticmethod
     def get_details():
-        return "!find death - Shows the coordinates of your last death on this server."
+        return "Shows the coordinates of your last death on this server."

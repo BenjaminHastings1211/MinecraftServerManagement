@@ -17,6 +17,7 @@ class HelpCommand(Event):
             tellraw.to_player(self.player)
             .text("━━━ ", color="#555555")
             .text(self.server.name, bold=True, color="#00ff00")
+            .text(" Commands", bold=True, color="#00ff00")
             .text(" ━━━", color="#555555")
         )
 
@@ -25,10 +26,13 @@ class HelpCommand(Event):
             if details:
                 self.server.tell(
                     tellraw.to_player(self.player)
+                    .text("- !", bold=True, color="#aaaaaa")
+                    .text(event_class.__name__, bold=True, color="#00ff00")
+                    .text(": ", color="#aaaaaa")
                     .text(details, color="#aaaaaa")
                 )
 
     @staticmethod
     def get_details():
-        return "!help - Shows a list of available commands."
+        return "Shows a list of available commands."
     

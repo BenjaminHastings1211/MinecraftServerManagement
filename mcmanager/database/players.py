@@ -188,14 +188,13 @@ def online(db, server_id):
     ).rows
 
 def increment_message_count(db, server_id, mc_name):
-    """Increment the message count for a specific player"""
+    """Increment the message count for a specific player."""
     return db.query(
         """
             UPDATE players
-            SET
-                message_count = message_count + 1
-            WHERE
-                server_id = %s AND
-                mc_name = %s
-        """, [sever_id, mc_name]
+            SET message_count = message_count + 1
+            WHERE server_id = %s
+              AND mc_name = %s
+        """,
+        [server_id, mc_name]
     )

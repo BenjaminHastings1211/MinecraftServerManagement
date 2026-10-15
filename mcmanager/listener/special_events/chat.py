@@ -1,6 +1,7 @@
 import re
 
 from mcmanager.listener.base import Event
+from mcmanager.database import players
 
 
 class Chat(Event):
@@ -15,5 +16,4 @@ class Chat(Event):
         return self.match["text"]
 
     def action(self, db):
-        #increment_message_count(db, self.server, self.player)
-        pass
+        players.increment_message_count(db, self.server.id, self.player)

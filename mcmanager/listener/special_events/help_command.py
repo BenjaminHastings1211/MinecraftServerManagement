@@ -13,7 +13,8 @@ class HelpCommand(Event):
 
     def action(self, db):
         from mcmanager.listener.events import EVENTS
-        self.server.tell(
+        
+        message = (
             tellraw.to_player(self.player)
             .text("━━━ ", color="#555555")
             .text(self.server.name, bold=True, color="#00ff00")
@@ -24,13 +25,11 @@ class HelpCommand(Event):
         for event_class in EVENTS:
             details = event_class.get_details()
             if details:
-                self.server.tell(
-                    tellraw.to_player(self.player)
-                    .text("- !", bold=True, color="#aaaaaa")
-                    .text(event_class.__name__, bold=True, color="#00ff00")
-                    .text(": ", color="#aaaaaa")
-                    .text(details, color="#aaaaaa")
-                )
+                message.text("\n")
+                message.text("- ", color="#555555")
+                message.text(details, color="#aaaaaa")
+
+        self.server.tell(message)
 
     @staticmethod
     def get_details():

@@ -30,7 +30,7 @@ class FindCommand(Event):
             return
 
         player_dimension = self.server.get_player_dimension(self.target_player)
-        player_position = self.server.get_player_position(self.target_player)
+        player_position = self.server.get_player_pos(self.target_player)
 
         if player_dimension is None or player_position is None:
             self.server.tell(

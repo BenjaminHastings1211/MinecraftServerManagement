@@ -11,6 +11,7 @@ from mcmanager.listener.special_events.death_location_command import DeathLocati
 from mcmanager.listener.special_events.login import Login
 from mcmanager.listener.special_events.logout import Logout
 from mcmanager.listener.special_events.playtime_command import PlaytimeCommand
+from mcmanager.listener.special_events.help_command import HelpCommand
 
 
 # The order of parcing matters so check this
@@ -20,6 +21,7 @@ EVENTS = [
     Death,
     DeathLocationCommand,
     PlaytimeCommand,
+    HelpCommand,
     Chat,
 ]
 

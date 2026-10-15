@@ -3,6 +3,7 @@ import re
 from mcmanager import tellraw
 from mcmanager.listener.base import Event
 
+
 class HelpCommand(Event):
     pattern = re.compile(r"^(?:\[Not Secure\] )?<(?P<player>[^>]+)> \!help$")
 
@@ -26,3 +27,7 @@ class HelpCommand(Event):
                         tellraw.to_player(self.player)
                         .text(details, color="#aaaaaa")
                     )
+
+    def get_details(self):
+            return "!help - Shows a list of available commands."
+    

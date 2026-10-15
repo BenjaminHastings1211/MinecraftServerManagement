@@ -51,6 +51,7 @@ class FindCommand(Event):
             .text(z, bold=True, color="#ff0000")
         )
 
+    #This method will change once we implement admin checks, for now it will just return the string
     @staticmethod
     def get_details():
         #if self.is_admin:

@@ -26,8 +26,8 @@ class HelpCommand(Event):
             details = event_class.get_details()
             if details:
                 message.text("\n")
-                message.text("- !", bold=True, color="#555555")
-                message.text(event_class.__name__, bold=True, color="#ff0000")
+                message.text("- ", bold=True, color="#555555")
+                message.text(event_class.get_command(), bold=True, color="#ff0000")
                 message.text(": ", bold=True, color="#555555")
                 message.text(details, color="#aaaaaa")
 
@@ -36,4 +36,7 @@ class HelpCommand(Event):
     @staticmethod
     def get_details():
         return "Shows a list of available commands."
-    
+
+    @staticmethod
+    def get_command():
+        return "!help"

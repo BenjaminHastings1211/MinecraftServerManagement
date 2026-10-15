@@ -2,7 +2,6 @@ import re
 
 from mcmanager import tellraw
 from mcmanager.listener.base import Event
-from mcmanager.listener.events import EVENTS
 
 
 class HelpCommand(Event):
@@ -13,6 +12,7 @@ class HelpCommand(Event):
         return self.match["player"]
 
     def action(self, db):
+        from mcmanager.listener.events import EVENTS
         self.server.tell(
             tellraw.to_player(self.player)
             .text("━━━ ", color="#555555")

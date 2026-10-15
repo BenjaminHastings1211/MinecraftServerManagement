@@ -29,14 +29,10 @@ class FindCommand(Event):
             )
             return
 
-        result = locations.get(
-            db,
-            self.server.number,
-            db_target_player_info["id"],
-            f"{self.target_player} location",
-        )
+        player_dimension = self.server.get_player_dimension(self.target_player)
+        player_position = self.server.get_player_position(self.target_player)
 
-        if result is None:
+        if player_dimension is None or player_position is None:
             self.server.tell(
                 tellraw.to_player(self.player).text("No location found for player.")
             )
@@ -44,13 +40,13 @@ class FindCommand(Event):
 
         self.server.tell(
             tellraw.to_player(self.player)
-            .text(result["dimension"], bold=True, color="#00ff00")
+            .text(player_dimension, bold=True, color="#00ff00")
             .text(": ")
-            .text(result["x_position"], bold=True, color="#ff0000")
+            .text(player_position["x"], bold=True, color="#ff0000")
             .text(" ")
-            .text(result["y_position"], bold=True, color="#ff0000")
+            .text(player_position["y"], bold=True, color="#ff0000")
             .text(" ")
-            .text(result["z_position"], bold=True, color="#ff0000")
+            .text(player_position["z"], bold=True, color="#ff0000")
         )
 
     @staticmethod

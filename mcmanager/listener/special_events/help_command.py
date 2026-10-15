@@ -29,5 +29,5 @@ class HelpCommand(Event):
                     )
 
     def get_details(self):
-            return "!help - Shows a list of available commands."
+        return "!help - Shows a list of available commands."
     

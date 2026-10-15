@@ -2,6 +2,7 @@ import re
 
 from mcmanager import tellraw
 from mcmanager.listener.base import Event
+from mcmanager.listener.events import EVENTS
 
 
 class HelpCommand(Event):
@@ -19,14 +20,13 @@ class HelpCommand(Event):
             .text(" ━━━", color="#555555")
         )
 
-        for event_class in self.server.events:
-            if hasattr(event_class, "get_details"):
-                details = event_class.get_details()
-                if details:
-                    self.server.tell(
-                        tellraw.to_player(self.player)
-                        .text(details, color="#aaaaaa")
-                    )
+        for event_class in EVENTS:
+            details = event_class.get_details()
+            if details:
+                self.server.tell(
+                    tellraw.to_player(self.player)
+                    .text(details, color="#aaaaaa")
+                )
 
     def get_details(self):
         return "!help - Shows a list of available commands."

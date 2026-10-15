@@ -59,3 +59,11 @@ class PlaytimeCommand(Event):
                 color="#ffaa00",
             )
         )
+
+    @staticmethod
+    def get_details():
+        return "Shows your total playtime and current session time for this server."
+
+    @staticmethod
+    def get_command():
+        return "!playtime"

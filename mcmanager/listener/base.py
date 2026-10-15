@@ -66,3 +66,13 @@ class Event:
 
     def action(self, db):
         pass
+
+    @staticmethod
+    def get_details():
+        """Return a string with details about the event, for logging."""
+        return None
+
+    @staticmethod
+    def get_command():
+        """Return the command that triggers this event, if any."""
+        return None

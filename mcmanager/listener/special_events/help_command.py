@@ -28,6 +28,7 @@ class HelpCommand(Event):
                     .text(details, color="#aaaaaa")
                 )
 
-    def get_details(self):
+    @staticmethod
+    def get_details():
         return "!help - Shows a list of available commands."
     

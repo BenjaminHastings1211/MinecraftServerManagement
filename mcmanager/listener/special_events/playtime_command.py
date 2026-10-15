@@ -60,5 +60,6 @@ class PlaytimeCommand(Event):
             )
         )
 
-    def get_details(self):
+    @staticmethod
+    def get_details():
         return "!playtime - Shows your total playtime and current session time for this server."

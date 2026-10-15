@@ -38,15 +38,17 @@ class FindCommand(Event):
             )
             return
 
+        x, y, z = (int(value) for value in player_position)
+
         self.server.tell(
             tellraw.to_player(self.player)
             .text(player_dimension, bold=True, color="#00ff00")
             .text(": ")
-            .text(player_position["x"], bold=True, color="#ff0000")
+            .text(x, bold=True, color="#ff0000")
             .text(" ")
-            .text(player_position["y"], bold=True, color="#ff0000")
+            .text(y, bold=True, color="#ff0000")
             .text(" ")
-            .text(player_position["z"], bold=True, color="#ff0000")
+            .text(z, bold=True, color="#ff0000")
         )
 
     @staticmethod

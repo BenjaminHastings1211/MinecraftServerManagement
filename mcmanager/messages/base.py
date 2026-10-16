@@ -1,8 +1,7 @@
-
 import json
 import re
 
-COLOURS = (
+COLORS = (
     "black", "dark_blue", "dark_green", "dark_aqua",
     "dark_red", "dark_purple", "gold", "gray",
     "dark_gray", "blue", "green", "aqua",
@@ -15,10 +14,10 @@ _PLAYER_NAME = re.compile(r"^\w{1,16}$")
 STYLES = ("bold", "italic", "underlined", "strikethrough", "obfuscated")
 
 
-def _colour(value):
-    if value in COLOURS or _HEX.match(value):
+def _color(value):
+    if value in COLORS or _HEX.fullmatch(value):
         return value
-    raise ValueError(f"Unknown colour: {value!r}")
+    raise ValueError(f"Unknown color: {value!r}")
 
 
 class Message:
@@ -30,7 +29,7 @@ class Message:
         part = {"text": str(text)}
 
         if color is not None:
-            part["color"] = _colour(color)
+            part["color"] = _color(color)
 
         for name, value in styles.items():
             if name not in STYLES:

@@ -4,7 +4,15 @@ import _bootstrap
 from mcmanager import cli, tellraw
 
 def main():
-    parser = cli.parser("Restart the RCON listener for every running server.", target=None)
+    parser = cli.parser(
+        "Restart the RCON listener for every running server, or just one.",
+        target=None,
+    )
+    parser.add_argument(
+        "-s", "--server",
+        default="all",
+        help="server ID, e.g. 2 (or server-002); default: all running servers",
+    )
     parser.add_argument(
         "-q", "--quiet",
         action="store_true",
@@ -12,10 +20,14 @@ def main():
     )
     args = parser.parse_args()
 
-    servers = cli.resolve("all")
+    servers = cli.resolve(args.server)
+    one_server = args.server.strip().lower() != "all"
 
     for server in servers:
         if not server.is_running():
+            if one_server:
+                raise cli.CommandError(f"{cli.server_label(server)} is not running.")
+
             continue
 
         print("Rebooting RCON listener for %s."%server.name)

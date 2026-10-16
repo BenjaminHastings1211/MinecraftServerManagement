@@ -12,6 +12,7 @@ from mcmanager.listener.special_events.login import Login
 from mcmanager.listener.special_events.logout import Logout
 from mcmanager.listener.special_events.playtime_command import PlaytimeCommand
 from mcmanager.listener.special_events.help_command import HelpCommand
+from mcmanager.listener.special_events.find_command import FindCommand
 from mcmanager.listener.special_events.operator_updates import PlayerOp, PlayerDeOp
 
 
@@ -25,6 +26,7 @@ EVENTS = [
     DeathLocationCommand,
     PlaytimeCommand,
     HelpCommand,
+    FindCommand,
     Chat,
 ]
 

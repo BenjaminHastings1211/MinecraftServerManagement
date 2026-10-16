@@ -8,6 +8,8 @@ from mcmanager.listener.base import Event
 class FindCommand(Event):
     pattern = re.compile(r"^(?:\[Not Secure\] )?<(?P<player>[^>]+)> \!find (?P<target_player>\w+)$")
 
+    permission = permissions.OP
+
     @property
     def player(self):
         return self.match["player"]

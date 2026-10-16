@@ -23,7 +23,6 @@ def main():
 
     print(f"Creating {args.name}...", flush=True)
     server = Server.create(args.name, args.version)
-    number = cli.short_id(server)
 
     print(cli.green(f"Created {cli.server_label(server)}"))
     print(f"  Version:  {server.version}")
@@ -31,8 +30,8 @@ def main():
     print(f"  Location: {server.path}")
     print()
     print("Next steps:")
-    print(f"  mc-confirm {number}   accept the Minecraft EULA")
-    print(f"  mc-start {number}     start it")
+    print(f"  mc-confirm {server.id}   accept the Minecraft EULA")
+    print(f"  mc-start {server.id}     start it")
 
 
 if __name__ == "__main__":

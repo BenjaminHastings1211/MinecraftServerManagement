@@ -42,6 +42,16 @@ def listen(server):
                             continue
 
                         print(event, flush=True)
+
+                        if not event.allowed(db):
+                            server.tell(
+                                tellraw.to_player(event.player)
+                                .text("You don't have permission to use ", color="#ff5555")
+                                .text(event.get_command() or "that", bold=True, color="#ff5555")
+                                .text(".", color="#ff5555")
+                            )
+                            continue
+
                         event.action(db)
 
                     except Exception as e:

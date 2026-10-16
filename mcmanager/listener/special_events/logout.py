@@ -17,7 +17,7 @@ class Logout(Event):
     def action(self, db):
         players.logout(
             db,
-            self.server.number,
+            self.server.id,
             self.player,
             at=self.when,
         )

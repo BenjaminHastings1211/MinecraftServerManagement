@@ -61,7 +61,7 @@ def saving_paused(server):
                 time.sleep(2)
         else:
             raise RuntimeError(
-                f"Could not turn saving back on for {server.id}! "
+                f"Could not turn saving back on for {server.folder}! "
                 f"Run: mc-cmd {server.id} save-on"
             )
 
@@ -119,7 +119,7 @@ def restore(server, backup_path):
     backup_path = Path(backup_path)
 
     if server.is_running():
-        raise RuntimeError(f"Stop {server.name} ({server.id}) before restoring.")
+        raise RuntimeError(f"Stop {server.name} ({server.folder}) before restoring.")
 
     staging = server.path / ".restore"
     shutil.rmtree(staging, ignore_errors=True)

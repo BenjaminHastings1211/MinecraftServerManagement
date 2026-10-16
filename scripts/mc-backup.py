@@ -16,7 +16,7 @@ def backup(server, force):
 
         if not paused:
             cli.warning(
-                f"{server.id}: couldn't pause saving over RCON, so the "
+                f"{server.folder}: couldn't pause saving over RCON, so the "
                 "backup may be inconsistent. Restart the server to enable RCON."
             )
 

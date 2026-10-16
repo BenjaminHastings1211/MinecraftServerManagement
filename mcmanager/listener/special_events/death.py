@@ -22,7 +22,7 @@ class Death(Event):
             FROM players
             WHERE server_id = %s AND mc_name = %s;
             """,
-            [server.number, event.player],
+            [server.id, event.player],
         ).first()
 
         if result is None:
@@ -50,7 +50,7 @@ class Death(Event):
             FROM players
             WHERE server_id = %s AND mc_name = %s;
             """,
-            [self.server.number, self.player],
+            [self.server.id, self.player],
         ).first()
 
         if result is None:
@@ -86,7 +86,7 @@ class Death(Event):
                 last_death_date = %s
             WHERE server_id = %s AND mc_name = %s;
             """,
-            [self.when, self.server.number, self.player],
+            [self.when, self.server.id, self.player],
         )
 
         # Get death information and save it as a waypoint.
@@ -95,14 +95,14 @@ class Death(Event):
 
         db_player_info = players.get(
             db,
-            self.server.number,
+            self.server.id,
             self.player,
         )
 
         if db_player_info is not None:
             locations.create(
                 db,
-                self.server.number,
+                self.server.id,
                 db_player_info["id"],
                 f"{self.player} death location",
                 pos,

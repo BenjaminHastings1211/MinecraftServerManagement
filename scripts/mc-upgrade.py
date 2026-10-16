@@ -34,7 +34,7 @@ def upgrade(server, version, get_jar, restart=True):
         path, paused = server.backup(label=f"pre-{version}")
 
         if not paused:
-            cli.warning(f"{server.id}: saving couldn't be paused; backup may be inconsistent.")
+            cli.warning(f"{server.folder}: saving couldn't be paused; backup may be inconsistent.")
 
         print(f"  Saved as {path.name}")
 

@@ -46,8 +46,8 @@ JVM_FLAGS = [
 
 def parse_server_id(value):
     """
-    Normalise a server ID: 3, "3", "003" and "server-003" all
-    become "server-003".
+    Normalise a server ID to its database id: 3, "3", "003" and
+    "server-003" all become 3.
     """
     text = str(value).strip().lower().removeprefix("server-")
 
@@ -59,7 +59,7 @@ def parse_server_id(value):
     if number < 1:
         raise ValueError("Server ID must be positive.")
 
-    return f"server-{number:03d}"
+    return number
 
 
 def used_ports():
@@ -105,10 +105,10 @@ def _directory_size(path):
 
 class Server:
     """
-    A Minecraft server living in SERVERS/<server-id>.
+    A Minecraft server living in SERVERS/<folder>.
 
     Every server has a row in the database's servers table (see
-    registry.py) holding its auto-assigned number, name, folder and
+    registry.py) holding its auto-assigned id, name, folder and
     status. Only active servers can be loaded.
 
     config.json holds the settings managed by these scripts.
@@ -120,17 +120,17 @@ class Server:
 
     def __init__(self, server_id, record=None):
         if record is None:
-            folder = parse_server_id(server_id)
+            server_id = parse_server_id(server_id)
             with DatabaseClient() as db:
-                record = registry.get(db, int(folder.removeprefix("server-")))
+                record = registry.get(db, server_id)
 
             if record is None or record["status"] != registry.ACTIVE:
-                raise FileNotFoundError(f"Server not found: {folder}")
+                raise FileNotFoundError(f"Server not found: {server_id}")
 
         self.record = record
-        self.number = record["id"]
-        self.id = record["folder"]
-        self.path = SERVERS / self.id
+        self.id = record["id"]
+        self.folder = record["folder"]
+        self.path = SERVERS / self.folder
         self.config_path = self.path / "config.json"
         self.properties_path = self.path / "server.properties"
         self.eula_path = self.path / "eula.txt"
@@ -140,12 +140,12 @@ class Server:
         self.db = DatabaseClient()
 
         if not self.path.is_dir():
-            raise FileNotFoundError(f"Server not found: {self.id}")
+            raise FileNotFoundError(f"Server not found: {self.folder}")
 
         self._load_config()
 
     def __repr__(self):
-        return f"Server({self.id!r}, name={self.name!r})"
+        return f"Server({self.id!r}, name={self.name!r}, folder={self.folder!r})"
 
     @classmethod
     def all(cls):
@@ -154,7 +154,7 @@ class Server:
         with DatabaseClient() as db:
             for record in registry.active(db):
                 try:
-                    servers.append(cls(record["folder"], record))
+                    servers.append(cls(record["id"], record))
                 except (OSError, ValueError):
                     continue
 
@@ -202,7 +202,7 @@ class Server:
             with (server_path / "config.json").open("w") as file:
                 json.dump(config, file, indent=4)
 
-            server = cls(record["folder"], record)
+            server = cls(record["id"], record)
             server.ensure_rcon()
             server.configure_properties()
 
@@ -381,13 +381,13 @@ class Server:
                 rcon.command("list")
         """
         if not self.is_running():
-            raise RconError(f"{self.name} ({self.id}) is not running.")
+            raise RconError(f"{self.name} ({self.folder}) is not running.")
 
         port = self.rcon_port
         password = self.config["properties"].get("rcon.password")
 
         if port is None or not password:
-            raise RconError(f"RCON is not configured for {self.id}.")
+            raise RconError(f"RCON is not configured for {self.folder}.")
 
         return Rcon("127.0.0.1", port, password, lock_path=self.path / ".rcon.lock")
 
@@ -489,11 +489,11 @@ class Server:
         the subprocess.Popen.
         """
         if self.is_running():
-            raise RuntimeError(f"{self.name} ({self.id}) is already running.")
+            raise RuntimeError(f"{self.name} ({self.folder}) is already running.")
 
         if not self.eula_approved():
             raise RuntimeError(
-                f"EULA not accepted for {self.name} ({self.id}). "
+                f"EULA not accepted for {self.name} ({self.folder}). "
                 "Run mc-confirm first."
             )
 
@@ -546,25 +546,25 @@ class Server:
                 tail = "\n".join(new_text.strip().splitlines()[-10:])
                 self._forget("server")
                 raise RuntimeError(
-                    f"{self.name} ({self.id}) exited during startup "
+                    f"{self.name} ({self.folder}) exited during startup "
                     f"(code {process.returncode}):\n{tail}"
                 )
 
             time.sleep(1)
 
         raise RuntimeError(
-            f"{self.name} ({self.id}) did not finish loading within "
+            f"{self.name} ({self.folder}) did not finish loading within "
             f"{timeout} seconds. It is still running; check console.log."
         )
 
     def _remember(self, role, pid):
         """Record a process we just started in the servers table."""
         with DatabaseClient() as db:
-            registry.set_process(db, self.number, role, pid, psutil.Process(pid).create_time())
+            registry.set_process(db, self.id, role, pid, psutil.Process(pid).create_time())
 
     def _forget(self, role):
         with DatabaseClient() as db:
-            registry.set_process(db, self.number, role)
+            registry.set_process(db, self.id, role)
 
     def _tracked_process(self, role, is_ours):
         """
@@ -573,7 +573,7 @@ class Server:
         reused) is cleared.
         """
         with DatabaseClient() as db:
-            record = registry.get(db, self.number) or {}
+            record = registry.get(db, self.id) or {}
         pid = record.get(f"{role}_pid")
 
         if pid is None:
@@ -645,7 +645,7 @@ class Server:
         self.stop_listener()
 
         with DatabaseClient() as db:
-            players.logout_all(db, self.number)
+            players.logout_all(db, self.id)
 
         return True
 
@@ -655,9 +655,11 @@ class Server:
         """The running listener's psutil.Process, or None."""
         return self._tracked_process(
             "listener",
+            # Listeners started by older code were passed the folder name.
             lambda process: process.cmdline()[1:] in (
-                ["-m", LISTENER_MODULE, self.id],
-                [str(LEGACY_LISTENER), self.id],
+                ["-m", LISTENER_MODULE, str(self.id)],
+                ["-m", LISTENER_MODULE, self.folder],
+                [str(LEGACY_LISTENER), self.folder],
             ),
         )
 
@@ -742,7 +744,7 @@ class Server:
 
         if not self.stop():
             raise RuntimeError(
-                f"{self.name} ({self.id}) did not stop; not restarting."
+                f"{self.name} ({self.folder}) did not stop; not restarting."
             )
 
         return self.wait_until_ready(self.start(background=True))
@@ -796,11 +798,11 @@ class Server:
         folder, world and backups are left on disk.
         """
         if self.is_running():
-            raise RuntimeError(f"Stop {self.name} ({self.id}) before deleting it.")
+            raise RuntimeError(f"Stop {self.name} ({self.folder}) before deleting it.")
 
         self.stop_listener()
         with DatabaseClient() as db:
-            registry.set_status(db, self.number, registry.INACTIVE)
+            registry.set_status(db, self.id, registry.INACTIVE)
         self.record["status"] = registry.INACTIVE
 
     def update_version(self, version_file, version):

@@ -50,12 +50,12 @@ def parser(description, target=ONE):
     if target == ONE:
         parser.add_argument(
             "server",
-            help="server ID, e.g. 2 for server-002",
+            help="server ID, e.g. 2 (or its folder name, server-002)",
         )
     elif target == ALL:
         parser.add_argument(
             "server",
-            help="server ID, e.g. 2 for server-002, or 'all'",
+            help="server ID, e.g. 2 (or its folder name, server-002), or 'all'",
         )
 
     return parser
@@ -72,11 +72,6 @@ def resolve(value):
         return servers
 
     return [Server(value)]
-
-
-def short_id(server):
-    """The number users type: server-003 -> 3."""
-    return int(server.id.removeprefix("server-"))
 
 
 # Running
@@ -114,7 +109,7 @@ def for_each(servers, action):
             if action(server) is False:
                 failed = True
         except (CommandError, *EXPECTED_ERRORS) as error:
-            error_line(f"{server.id}: {error}")
+            error_line(f"{server.folder}: {error}")
             failed = True
 
     return 1 if failed else 0
@@ -168,7 +163,7 @@ def heading(title, width=40):
 
 
 def server_label(server):
-    return f"{server.name} ({server.id})"
+    return f"{server.name} ({server.folder})"
 
 
 def print_backups(server):

@@ -5,6 +5,8 @@ plus helpers they share.
 
 from datetime import datetime, timedelta
 
+from mcmanager.database import permissions
+
 
 def duration(seconds):
     days, seconds = divmod(seconds, 86400)
@@ -27,6 +29,7 @@ def duration(seconds):
 
 class Event:
     pattern = None
+    permission = permissions.PLAYER
 
     def __init__(self, server, line, match):
         self.server = server
@@ -63,6 +66,15 @@ class Event:
             moment -= timedelta(days=1)
 
         return moment
+
+    def allowed(self, db):
+        """True if the player who triggered this event may run it."""
+        if self.permission <= permissions.PLAYER:
+            return True
+
+        return permissions.check_permission(
+            db, self.server.id, self.player, self.permission
+        )
 
     def action(self, db):
         pass

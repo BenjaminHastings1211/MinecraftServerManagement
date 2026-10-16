@@ -18,7 +18,7 @@ class PlaytimeCommand(Event):
             FROM players
             WHERE server_id = %s AND mc_name = %s;
             """,
-            [self.server.number, self.player],
+            [self.server.id, self.player],
         ).first()
 
         if result is None:

@@ -19,13 +19,14 @@ def main():
     if server.is_running():
         raise cli.CommandError(
             f"{cli.server_label(server)} is running. "
-            f"Stop it first with: mc-stop {cli.short_id(server)}"
+            f"Stop it first with: mc-stop {server.id}"
         )
 
     cli.heading("Delete Minecraft Server")
 
     print(f"Server:       {server.name}")
     print(f"ID:           {server.id}")
+    print(f"Folder:       {server.folder}")
     print(f"Version:      {server.version}")
     print(f"Created:      {cli.format_date(server.created)}")
     print(f"Age:          {cli.format_age(server.created)}")

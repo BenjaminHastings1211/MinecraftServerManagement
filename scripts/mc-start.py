@@ -20,7 +20,7 @@ def start(server, console=False, wait=True):
 
     for key in server.unknown_properties():
         cli.warning(
-            f"{server.id}: '{key}' is not a server.properties key "
+            f"{server.folder}: '{key}' is not a server.properties key "
             "and will be ignored."
         )
 

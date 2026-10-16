@@ -1,0 +1,1 @@
+ALTER TABLE players RENAME COLUMN messasge_count TO message_count;

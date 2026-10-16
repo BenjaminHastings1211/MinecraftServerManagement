@@ -2,7 +2,6 @@ import re
 
 from mcmanager import tellraw
 from mcmanager.listener.base import Event, duration
-from mcmanager.database import permissions
 
 
 class PlaytimeCommand(Event):
@@ -61,11 +60,9 @@ class PlaytimeCommand(Event):
             )
         )
 
+    @staticmethod
     def get_details(self, db):
-        if permissions.get_level(db, self.server.id, self.player) >= permissions.PLAYER:
-            return "Shows your total playtime and current session time for this server."
-        else:
-            return
+        return "Shows your total playtime and current session time for this server."
 
     @staticmethod
     def get_command():

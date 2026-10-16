@@ -1,7 +1,7 @@
 import re
 
 from mcmanager import tellraw
-from mcmanager.database import players, locations, permissions
+from mcmanager.database import players, locations
 from mcmanager.listener.base import Event
 
 
@@ -15,7 +15,7 @@ class DeathLocationCommand(Event):
     def action(self, db):
         db_player_info = players.get(
             db,
-            self.server.id,
+            self.server.number,
             self.player,
         )
 
@@ -27,7 +27,7 @@ class DeathLocationCommand(Event):
 
         result = locations.get(
             db,
-            self.server.id,
+            self.server.number,
             db_player_info["id"],
             f"{self.player} death location",
         )
@@ -49,12 +49,9 @@ class DeathLocationCommand(Event):
             .text(result["z_position"], bold=True, color="#ff0000")
         )
 
-    def get_details(self, db):
-        if permissions.get_level(db, self.server.id, self.player) >= permissions.PLAYER:
-            return "Shows the coordinates of your last death on this server."
-        else:
-            return
-
+    @staticmethod
+    def get_details():
+        return "Shows the coordinates of your last death on this server."
 
     @staticmethod
     def get_command():

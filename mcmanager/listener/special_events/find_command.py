@@ -21,7 +21,7 @@ class FindCommand(Event):
     def action(self, db):
         db_target_player_info = players.get(
             db,
-            self.server.number,
+            self.server.id,
             self.target_player,
         )
 

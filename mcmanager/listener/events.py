@@ -14,10 +14,12 @@ from mcmanager.listener.special_events.playtime_command import PlaytimeCommand
 from mcmanager.listener.special_events.help_command import HelpCommand
 from mcmanager.listener.special_events.find_command import FindCommand
 from mcmanager.listener.special_events.operator_updates import PlayerOp, PlayerDeOp
+from mcmanager.listener.special_events.server_boot import ServerBoot
 
 
 # The order of parcing matters so check this
 EVENTS = [
+    ServerBoot,
     Login,
     Logout,
     PlayerOp,

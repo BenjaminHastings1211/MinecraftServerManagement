@@ -398,6 +398,11 @@ class Server:
         """
         return Console(self)
 
+    def initialize(self):
+        """ this function will run once when the server is booted for the first time """
+
+        self.command("scoreboard objectives add deaths deathCount")
+
     def command(self, command):
         """Run one server command over RCON and return its reply."""
         with self.rcon() as rcon:
@@ -463,9 +468,6 @@ class Server:
         """
         make sure the player scoreboards or whatever necessary is created when a player is first registered on a server
         """
-        
-        # TODO: this should be moved to when a server is booted for a first time but good for now
-        self.command("scoreboard objectives add deaths deathCount")
          # set the death count to 0
         self.command("scoreboard players set %s deaths 0"%player)
 

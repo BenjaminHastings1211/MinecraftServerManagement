@@ -8,6 +8,8 @@
     "backup_size" : 0,
     "size"	: 0,
     "properties" : {
-    	"white-list" : "false"
+    	"white-list" : "false",
+        "broadcast-console-to-ops" : "false",
+        "broadcast-rcon-to-ops" : "false"
     }
 }

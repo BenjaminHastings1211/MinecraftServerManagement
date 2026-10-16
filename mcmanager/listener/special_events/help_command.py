@@ -37,8 +37,7 @@ class HelpCommand(Event):
 
         self.server.tell(message)
 
-    @staticmethod
-    def get_details():
+    def get_details(self, db):
         return "Shows a list of available commands."
 
     @staticmethod

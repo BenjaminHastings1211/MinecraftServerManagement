@@ -14,13 +14,13 @@ class Login(Event):
 
     def action(self, db):
         first_visit = (
-            players.get(db, self.server.number, self.player) is None
+            players.get(db, self.server.id, self.player) is None
         )
 
         # Record the login before messaging, so a failed message can't lose it.
         player_info = players.login(
             db,
-            self.server.number,
+            self.server.id,
             self.player,
             at=self.when,
         )

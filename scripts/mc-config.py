@@ -55,7 +55,7 @@ def main():
     print(f"  {key} = {value}")
 
     if server.is_running():
-        print(f"  Takes effect after a restart (mc-stop {cli.short_id(server)}, then mc-start {cli.short_id(server)}).")
+        print(f"  Takes effect after a restart (mc-stop {server.id}, then mc-start {server.id}).")
 
 
 if __name__ == "__main__":

@@ -45,7 +45,7 @@ def print_overview(servers):
         size = float(server.config.get("size", 0))
         indent = " " * 18
 
-        print(f"{dot} {server.name:<15} {server.id}")
+        print(f"{dot} {server.name:<15} {server.id:>3}  {server.folder}")
         print(f"{indent}{server.version}  •  {cli.format_age(server.created)}  •  {size:.1f} GB")
 
         if process is None:
@@ -71,6 +71,7 @@ def print_details(server):
 
     print(f"Name:             {server.name}")
     print(f"ID:               {server.id}")
+    print(f"Folder:           {server.folder}")
     print(f"Status:           {word}")
 
     if process is not None:
@@ -115,7 +116,7 @@ def main():
     parser.add_argument(
         "server",
         nargs="?",
-        help="server ID to show in detail, e.g. 2 for server-002",
+        help="server ID to show in detail, e.g. 2 (or server-002)",
     )
     args = parser.parse_args()
 

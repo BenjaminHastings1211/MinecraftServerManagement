@@ -23,10 +23,10 @@ EVENTS = [
     PlayerOp,
     PlayerDeOp,
     Death,
-    FindCommand,
     DeathLocationCommand,
     PlaytimeCommand,
     HelpCommand,
+    FindCommand,
     Chat,
 ]
 

@@ -12,12 +12,15 @@ from mcmanager.listener.special_events.login import Login
 from mcmanager.listener.special_events.logout import Logout
 from mcmanager.listener.special_events.playtime_command import PlaytimeCommand
 from mcmanager.listener.special_events.help_command import HelpCommand
+from mcmanager.listener.special_events.operator_updates import PlayerOp, PlayerDeOp
 
 
 # The order of parcing matters so check this
 EVENTS = [
     Login,
     Logout,
+    PlayerOp,
+    PlayerDeOp,
     Death,
     DeathLocationCommand,
     PlaytimeCommand,
@@ -28,6 +31,7 @@ EVENTS = [
 
 def classify(server, line, db):
     """Return the first event that matches the line, or None."""
+    print(line)
     for event_class in EVENTS:
         event = event_class.parse(server, line, db)
 

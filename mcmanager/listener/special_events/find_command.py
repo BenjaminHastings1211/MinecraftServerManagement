@@ -56,7 +56,7 @@ class FindCommand(Event):
     #This method will change once we implement admin checks, for now it will just return the string
     @staticmethod
     def get_details():
-        return "|OP Command| Shows the coordinates of the last known location of a player on this server."
+        return "[OP Command] Shows the coordinates of the last known location of a player on this server."
 
     @staticmethod
     def get_command():

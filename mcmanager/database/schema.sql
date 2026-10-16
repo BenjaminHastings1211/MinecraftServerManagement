@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS servers (
     -- for the moment between inserting the row and naming the folder.
     folder     VARCHAR(32)  NULL,
     status     ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+    has_init   BOOLEAN NOT NULL DEFAULT FALSE,
     -- Running processes. *_started is the process start time (Unix
     -- seconds), which tells a live process apart from a reused PID.
     server_pid       INT UNSIGNED NULL,

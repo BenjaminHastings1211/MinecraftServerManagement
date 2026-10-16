@@ -6,7 +6,6 @@ from mcmanager.database import permissions
 
 
 class PlayerOp(Event):
-    # Newer versions prefix these with "System chat: ".
     pattern = re.compile(
         r"^(?:System chat: )?\[(?P<actor>[^:]+): Made (?P<target>\S+) a server operator\]$"
     )
@@ -32,7 +31,6 @@ class PlayerOp(Event):
             )
 
 class PlayerDeOp(Event):
-    # Newer versions prefix these with "System chat: ".
     pattern = re.compile(
         r"^(?:System chat: )?\[(?P<actor>[^:]+): Made (?P<target>\S+) no longer a server operator\]$"
     )

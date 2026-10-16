@@ -31,7 +31,6 @@ EVENTS = [
 
 def classify(server, line, db):
     """Return the first event that matches the line, or None."""
-    print(line)
     for event_class in EVENTS:
         event = event_class.parse(server, line, db)
 

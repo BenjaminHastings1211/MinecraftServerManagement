@@ -1,7 +1,7 @@
 import re
 
 from mcmanager.messages import tellraw
-from mcmanager.database import players, locations, permissions
+from mcmanager.database import players, locations
 from mcmanager.listener.base import Event
 
 

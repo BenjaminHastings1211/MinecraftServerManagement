@@ -405,9 +405,9 @@ class Server:
 
         return strip_formatting(reply).strip()
 
-    def tell(self, message):
+    def notify(self, message):
         """
-        Send a tellraw message (see tellraw.py). Returns True if it was
+        Send a specially formatted message (see messages/base.py). Returns True if it was
         delivered, False if the target isn't online.
         """
         reply = self.command(str(message))
@@ -418,7 +418,7 @@ class Server:
         if reply == "No player was found":
             return False
 
-        raise RuntimeError(f"tellraw failed: {reply}")
+        raise RuntimeError(f"notify failed: {reply}")
 
     def get_death_count(self, player):
         """

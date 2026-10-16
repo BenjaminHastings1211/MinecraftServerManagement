@@ -1,6 +1,7 @@
 import re
 
-from mcmanager import server, tellraw
+from mcmanager import server
+from mcmanager.messages import tellraw
 from mcmanager.database import players, locations
 from mcmanager.listener.base import Event, duration
 
@@ -64,14 +65,14 @@ class Death(Event):
                 int((self.when - last_death_date).total_seconds()),
             )
 
-            self.server.tell(
+            self.server.notify(
                 tellraw.to_all()
                 .text("Last death: ")
                 .text(duration(seconds_since_last_death))
                 .text(" ago")
             )
 
-        self.server.tell(
+        self.server.notify(
             tellraw.to_player(self.player)
             .text("Use '")
             .text("!find death", color="aqua")

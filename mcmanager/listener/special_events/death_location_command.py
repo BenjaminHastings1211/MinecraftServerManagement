@@ -1,6 +1,6 @@
 import re
 
-from mcmanager import tellraw
+from mcmanager.messages import tellraw
 from mcmanager.database import players, locations, permissions
 from mcmanager.listener.base import Event
 
@@ -20,7 +20,7 @@ class DeathLocationCommand(Event):
         )
 
         if db_player_info is None:
-            self.server.tell(
+            self.server.notify(
                 tellraw.to_player(self.player).text("No death location.")
             )
             return
@@ -33,12 +33,12 @@ class DeathLocationCommand(Event):
         )
 
         if result is None:
-            self.server.tell(
+            self.server.notify(
                 tellraw.to_player(self.player).text("No death location.")
             )
             return
 
-        self.server.tell(
+        self.server.notify(
             tellraw.to_player(self.player)
             .text(result["dimension"], bold=True, color="#00ff00")
             .text(": ")

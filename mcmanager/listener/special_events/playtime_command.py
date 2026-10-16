@@ -1,6 +1,6 @@
 import re
 
-from mcmanager import tellraw
+from mcmanager.messages import tellraw
 from mcmanager.listener.base import Event, duration
 
 
@@ -35,20 +35,20 @@ class PlaytimeCommand(Event):
             )
             playtime += current_session
 
-        self.server.tell(
+        self.server.notify(
             tellraw.to_player(self.player)
             .text("━━━ ", color="#555555")
             .text(self.server.name, bold=True, color="#00ff00")
             .text(" ━━━", color="#555555")
         )
 
-        self.server.tell(
+        self.server.notify(
             tellraw.to_player(self.player)
             .text("⌛ Total Playtime: ", color="#aaaaaa")
             .text(duration(playtime), bold=True, color="#55aaff")
         )
 
-        self.server.tell(
+        self.server.notify(
             tellraw.to_player(self.player)
             .text("▶ Current Session: ", color="#aaaaaa")
             .text(

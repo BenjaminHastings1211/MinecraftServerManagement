@@ -44,7 +44,7 @@ def listen(server):
                         print(event, flush=True)
 
                         if not event.allowed(db):
-                            server.tell(
+                            server.notify(
                                 tellraw.to_player(event.player)
                                 .text("You don't have permission to use ", color="#ff5555")
                                 .text(event.get_command() or "that", bold=True, color="#ff5555")
@@ -59,7 +59,7 @@ def listen(server):
                         traceback.print_exc()
 
                         try:
-                            server.tell(
+                            server.notify(
                                 tellraw.to_all()
                                 .text("Error: ", bold=True, color="#ff5555")
                                 .text(str(e))

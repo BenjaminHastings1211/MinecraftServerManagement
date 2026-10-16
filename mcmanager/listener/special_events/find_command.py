@@ -26,7 +26,7 @@ class FindCommand(Event):
         )
 
         if db_target_player_info is None:
-            self.server.tell(
+            self.server.notify(
                 tellraw.to_player(self.player).text("Player not found")
             )
             return
@@ -35,14 +35,14 @@ class FindCommand(Event):
         player_position = self.server.get_player_pos(self.target_player)
 
         if player_dimension is None or player_position is None:
-            self.server.tell(
+            self.server.notify(
                 tellraw.to_player(self.player).text("No location found for player.")
             )
             return
 
         x, y, z = (int(value) for value in player_position)
 
-        self.server.tell(
+        self.server.notify(
             tellraw.to_player(self.player)
             .text(player_dimension, bold=True, color="#00ff00")
             .text(": ")

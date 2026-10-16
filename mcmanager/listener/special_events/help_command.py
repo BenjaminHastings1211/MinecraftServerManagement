@@ -1,6 +1,6 @@
 import re
 
-from mcmanager import tellraw
+from mcmanager.messages import tellraw
 from mcmanager.database import permissions
 from mcmanager.listener.base import Event
 
@@ -35,7 +35,7 @@ class HelpCommand(Event):
                 message.text(": ", bold=True, color="#555555")
                 message.text(details, color="#aaaaaa")
 
-        self.server.tell(message)
+        self.server.notify(message)
 
     @staticmethod
     def get_details():

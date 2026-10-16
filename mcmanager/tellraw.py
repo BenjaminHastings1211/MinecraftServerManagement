@@ -1,7 +1,7 @@
 """
 Build /tellraw commands piece by piece.
 
-    from mcmanager import tellraw
+    from mcmanager.messages import tellraw
 
     message = (
         tellraw.to_player("Steve")
@@ -10,7 +10,7 @@ Build /tellraw commands piece by piece.
         .text(" [spawn]", color="aqua", click_command="/spawn")
     )
 
-    server.tell(message)           # or server.command(str(message))
+    server.notify(message)           # or server.command(str(message))
 
 Each text() is styled on its own; styles don't carry over to the next
 piece. Colours are Minecraft's names (see COLOURS) or "#RRGGBB" hex.

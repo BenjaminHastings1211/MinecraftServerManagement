@@ -1,7 +1,7 @@
 import re
 
 from mcmanager.listener.base import Event
-from mcmanager import tellraw
+from mcmanager.messages import tellraw
 from mcmanager.database import permissions
 
 
@@ -22,7 +22,7 @@ class PlayerOp(Event):
         try:
             permissions.set_role(db, self.server.id, self.target, permissions.OP)
         except ValueError:
-            self.server.tell(
+            self.server.notify(
                 tellraw.to_player(self.actor)
                 .text(self.target)
                 .text(" does not exist on ")
@@ -47,7 +47,7 @@ class PlayerDeOp(Event):
         try:
             permissions.set_role(db, self.server.id, self.target, permissions.PLAYER)
         except ValueError:
-            self.server.tell(
+            self.server.notify(
                 tellraw.to_player(self.actor)
                 .text(self.target)
                 .text(" does not exist on ")

@@ -36,7 +36,7 @@ def main():
         server.ensure_listener();
 
         if not args.quiet:
-            server.tell(
+            server.notify(
                 tellraw.to_all()
                 .text("Lutzcraft RCON", color="#00ff00")
                 .text(": back online.")

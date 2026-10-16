@@ -15,7 +15,7 @@ class DeathLocationCommand(Event):
     def action(self, db):
         db_player_info = players.get(
             db,
-            self.server.number,
+            self.server.id,
             self.player,
         )
 
@@ -27,7 +27,7 @@ class DeathLocationCommand(Event):
 
         result = locations.get(
             db,
-            self.server.number,
+            self.server.id,
             db_player_info["id"],
             f"{self.player} death location",
         )

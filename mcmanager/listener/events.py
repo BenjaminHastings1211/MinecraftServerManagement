@@ -12,12 +12,15 @@ from mcmanager.listener.special_events.login import Login
 from mcmanager.listener.special_events.logout import Logout
 from mcmanager.listener.special_events.playtime_command import PlaytimeCommand
 from mcmanager.listener.special_events.help_command import HelpCommand
+from mcmanager.listener.special_events.operator_updates import PlayerOp, PlayerDeOp
 
 
 # The order of parcing matters so check this
 EVENTS = [
     Login,
     Logout,
+    PlayerOp,
+    PlayerDeOp,
     Death,
     DeathLocationCommand,
     PlaytimeCommand,

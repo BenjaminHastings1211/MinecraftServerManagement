@@ -1,6 +1,7 @@
 import re
 
 from mcmanager import tellraw
+from mcmanager.database import permissions
 from mcmanager.listener.base import Event
 
 
@@ -22,9 +23,12 @@ class HelpCommand(Event):
             .text(" ━━━", color="#555555")
         )
 
+        level = permissions.get_level(db, self.server.id, self.player)
+
         for event_class in EVENTS:
             details = event_class.get_details()
-            if details:
+
+            if details and permissions.is_allowed(level, event_class.permission):
                 message.text("\n")
                 message.text("- ", bold=True, color="#555555")
                 message.text(event_class.get_command(), bold=True, color="#ff0000")

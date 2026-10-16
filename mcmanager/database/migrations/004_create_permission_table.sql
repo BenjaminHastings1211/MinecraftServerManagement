@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS permissions (
+    permission_id SMALLINT PRIMARY KEY,
+    name VARCHAR(32) NOT NULL UNIQUE,
+    description TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

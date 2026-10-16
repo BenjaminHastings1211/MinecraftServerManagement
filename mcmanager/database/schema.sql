@@ -22,6 +22,19 @@ CREATE TABLE IF NOT EXISTS servers (
     UNIQUE KEY folder (folder)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Permission levels a player can have. Rows are fixed; see the seed below.
+CREATE TABLE IF NOT EXISTS permissions (
+    permission_id SMALLINT PRIMARY KEY,
+    name          VARCHAR(32) NOT NULL UNIQUE,
+    description   TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO permissions (permission_id, name, description)
+VALUES
+    (1, 'PLAYER', 'Standard player permissions'),
+    (2, 'OP', 'Minecraft operator permissions'),
+    (3, 'SERVER_ADMIN', 'Server controller administration permissions');
+
 -- One row per player per server: someone on three servers has three rows.
 CREATE TABLE IF NOT EXISTS players (
     id               INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -40,11 +53,14 @@ CREATE TABLE IF NOT EXISTS players (
     playtime_seconds BIGINT UNSIGNED NOT NULL DEFAULT 0,
     online           BOOLEAN NOT NULL DEFAULT FALSE,
     message_count   BIGINT NOT NULL DEFAULT 0,
+    permission_id    SMALLINT NOT NULL DEFAULT 1,
 
     PRIMARY KEY (id),
     UNIQUE KEY server_player (server_id, mc_name),
     KEY mc_name (mc_name),
-    CONSTRAINT players_server FOREIGN KEY (server_id) REFERENCES servers (id)
+    CONSTRAINT players_server FOREIGN KEY (server_id) REFERENCES servers (id),
+    CONSTRAINT players_permission FOREIGN KEY (permission_id)
+        REFERENCES permissions (permission_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 

@@ -50,7 +50,11 @@ class DeathLocationCommand(Event):
         )
 
     def get_details(self, db):
-        return "Shows the coordinates of your last death on this server."
+        if permissions.get_level(db, self.server.id, self.player) >= permissions.PLAYER:
+            return "Shows the coordinates of your last death on this server."
+        else:
+            return
+
 
     @staticmethod
     def get_command():

@@ -38,7 +38,9 @@ class HelpCommand(Event):
         self.server.tell(message)
 
     def get_details(self, db):
-        return "Shows a list of available commands."
+        if permissions.get_level(db, self.server.id, self.player) >= permissions.PLAYER:
+            return "Shows a list of available commands."
+        return
 
     @staticmethod
     def get_command():

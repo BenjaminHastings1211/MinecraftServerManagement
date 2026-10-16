@@ -54,7 +54,7 @@ class FindCommand(Event):
     #This method will change once we implement admin checks, for now it will just return the string
     def get_details(self, db):
         if permissions.get_level(db, self.server.id, self.player) >= permissions.OP:
-            return "|Admin Command| Shows the coordinates of the last known location of a player on this server."
+            return "|OP Command| Shows the coordinates of the last known location of a player on this server."
         else:
             return
 

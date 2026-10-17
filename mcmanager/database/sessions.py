@@ -175,3 +175,46 @@ def active(db, server_id):
         """,
         [server_id],
     ).rows
+
+# metrics
+
+def playtime_summary(db, server_id, interval):
+    """
+    Get each player's playtime over the given interval.
+
+    Args:
+        db: Database connection.
+        server_id: Server ID.
+        interval: MySQL interval value, e.g. "7 DAY", "1 MONTH".
+
+    Returns:
+        Rows containing player_id, mc_name, and playtime_seconds,
+        ordered by most playtime.
+    """
+    return db.query(
+        """
+        SELECT
+            p.id AS player_id,
+            p.mc_name,
+            COALESCE(SUM(
+                GREATEST(
+                    0,
+                    TIMESTAMPDIFF(
+                        SECOND,
+                        GREATEST(s.started_at, NOW() - INTERVAL %s),
+                        LEAST(COALESCE(s.ended_at, NOW()), NOW())
+                    )
+                )
+            ), 0) AS playtime_seconds
+        FROM players AS p
+        LEFT JOIN sessions AS s
+            ON s.player_id = p.id
+            AND s.server_id = p.server_id
+            AND s.started_at < NOW()
+            AND COALESCE(s.ended_at, NOW()) > NOW() - INTERVAL %s
+        WHERE p.server_id = %s
+        GROUP BY p.id, p.mc_name
+        ORDER BY playtime_seconds DESC
+        """,
+        [interval, interval, server_id],
+    ).rows

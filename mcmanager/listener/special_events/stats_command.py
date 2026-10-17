@@ -2,6 +2,7 @@ import re
 
 from mcmanager.messages import tellraw
 from mcmanager.listener.base import Event
+from mcmanager.database import sessions
 
 
 class StatsCommand(Event):
@@ -14,7 +15,7 @@ class StatsCommand(Event):
     def action(self, db):
         result = db.query(
             """
-            SELECT mc_name, death_count, playtime_seconds, duration_seconds
+            SELECT mc_name, death_count, playtime_seconds, COALESCE(TIMESTAMPDIFF(SECOND, session_start, NOW()), 0) AS current_session_seconds
             FROM players
             WHERE server_id = %s AND mc_name = %s;
             """,
@@ -24,8 +25,8 @@ class StatsCommand(Event):
         if result is None:
             return
 
-        playtime = (result["playtime_seconds"] or 0) + result["duration_seconds"]
-        current_session = result["duration_seconds"]
+        current_session = result["current_session_seconds"] or 0
+        playtime = (result["playtime_seconds"] or 0) + current_session
 
         self.server.notify(
             tellraw.to_player(self.player)
@@ -50,9 +51,7 @@ class StatsCommand(Event):
             tellraw.to_player(self.player)
             .text("▶ Current Session: ", color="#aaaaaa")
             .text(
-                tellraw.duration(current_session)
-                if result["duration_seconds"] > 0
-                else "Not in session",
+                tellraw.duration(current_session) if current_session > 0 else "Not in session",
                 bold=True,
                 color="#ffaa00",
             )

@@ -73,7 +73,7 @@ class StatsCommand(Event):
             tellraw.to_player(self.player)
             .text("⛏ Total Blocks Mined: ", color="#aaaaaa")
             .text(
-                str(self.server.get_player_total_blocks_mined(self.player)) if self.server.get_player_total_blocks_mined(self.player) is not None else "Data not available",
+                str(self.server.get_blocks_mined(self.player)) if self.server.get_blocks_mined(self.player) is not None else "Data not available",
                 bold=True,
                 color="#55ff55",
             )

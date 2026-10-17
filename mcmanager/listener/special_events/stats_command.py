@@ -15,9 +15,19 @@ class StatsCommand(Event):
     def action(self, db):
         result = db.query(
             """
-            SELECT mc_name, death_count, playtime_seconds, COALESCE(TIMESTAMPDIFF(SECOND, session_start, NOW()), 0) AS current_session_seconds
-            FROM players
-            WHERE server_id = %s AND mc_name = %s;
+            SELECT
+                p.mc_name,
+                p.death_count,
+                p.playtime_seconds,
+                COALESCE((
+                    SELECT TIMESTAMPDIFF(SECOND, s.started_at, NOW())
+                    FROM sessions s
+                    WHERE s.player_id = p.id AND s.ended_at IS NULL
+                    ORDER BY s.started_at DESC
+                    LIMIT 1
+                ), 0) AS current_session_seconds
+            FROM players p
+            WHERE p.server_id = %s AND p.mc_name = %s;
             """,
             [self.server.id, self.player],
         ).first()

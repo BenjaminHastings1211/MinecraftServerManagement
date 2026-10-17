@@ -53,14 +53,14 @@ class StatsCommand(Event):
         self.server.notify(
             tellraw.to_player(self.player)
             .text("⌛ Total Playtime: ", color="#aaaaaa")
-            .text(self.duration(playtime), bold=True, color="#55aaff")
+            .text(tellraw.duration(playtime), bold=True, color="#55aaff")
         )
 
         self.server.notify(
             tellraw.to_player(self.player)
             .text("▶ Current Session: ", color="#aaaaaa")
             .text(
-                self.duration(current_session) if current_session > 0 else "Not in session",
+                tellraw.duration(current_session) if current_session > 0 else "Not in session",
                 bold=True,
                 color="#ffaa00",
             )
@@ -73,20 +73,3 @@ class StatsCommand(Event):
     @staticmethod
     def get_command():
         return "!stats"
-
-    #Time Fomatting method(could add to a utils file later)
-    @staticmethod
-    def duration(seconds):
-        """Format seconds as e.g. '2d 3h 14m', '5m 12s', or '42s'."""
-        seconds = int(seconds or 0)
-        days, rem = divmod(seconds, 86400)
-        hours, rem = divmod(rem, 3600)
-        minutes, secs = divmod(rem, 60)
-
-        if days:
-            return f"{days}d {hours}h {minutes}m"
-        if hours:
-            return f"{hours}h {minutes}m"
-        if minutes:
-            return f"{minutes}m {secs}s"
-        return f"{secs}s"

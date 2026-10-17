@@ -22,7 +22,7 @@ class TopCommand(Event):
             LIMIT 10;
             """,
             [self.server.id],
-        ).all()
+        ).rows
 
         if not top_players:
             self.server.notify(
@@ -42,7 +42,7 @@ class TopCommand(Event):
                 tellraw.to_player(self.player)
                 .text(f"{rank}. ", color="#aaaaaa")
                 .text(player["mc_name"], bold=True, color="#55aaff")
-                .text(f" - Playtime: {self.duration(player['playtime_seconds'])}, Deaths: {player['death_count']}", color="#aaaaaa")
+                .text(f" - Playtime: {tellraw.duration(player['playtime_seconds'])}, Deaths: {player['death_count']}", color="#aaaaaa")
             )
 
     @staticmethod

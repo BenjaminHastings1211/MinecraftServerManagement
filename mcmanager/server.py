@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import time
+import uuid
 
 from datetime import datetime
 from pathlib import Path
@@ -402,6 +403,7 @@ class Server:
         """ this function will run once when the server is booted for the first time """
 
         self.command("scoreboard objectives add deaths deathCount")
+        self.command("scoreboard objectives add mob_kills minecraft.custom:minecraft.mob_kills")
 
     def command(self, command):
         """Run one server command over RCON and return its reply."""
@@ -464,12 +466,50 @@ class Server:
             float(match.group("z")),
         )
 
+    def get_mobs_killed(self, player):
+        """
+        Return player's total mob kills, or 0 if failed to regex match.
+        """
+        response = self.command(
+            "scoreboard players get %s mob_kills" % player
+        )
+
+        match = re.search(r"has (-?\d+)", str(response))
+        return int(match.group(1)) if match else 0
+
+    def get_blocks_mined(self, player):
+        """
+        Return total blocks mined across all block types, or 0 if unavailable.
+        """
+        resp = self.command(f"data get entity {player} UUID")
+        match = re.search(
+            r"\[I;\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*\]",
+            str(resp),
+        )
+
+        if not match:
+            return 0
+
+        a, b, c, d = (int(match.group(i)) & 0xFFFFFFFF for i in range(1, 5))
+        player_uuid = uuid.UUID(int=(a << 96) | (b << 64) | (c << 32) | d)
+
+        self.command("save-all flush")  # stats file only updates on save
+        path = self.world_path / "stats" / f"{player_uuid}.json"
+
+        try:
+            stats = json.loads(path.read_text()).get("stats", {})
+        except (FileNotFoundError, json.JSONDecodeError):
+            return 0
+
+        return sum(stats.get("minecraft:mined", {}).values())
+
     def register_player(self, player):
         """
         make sure the player scoreboards or whatever necessary is created when a player is first registered on a server
         """
          # set the death count to 0
         self.command("scoreboard players set %s deaths 0"%player)
+        self.command("scoreboard players set %s mob_kills 0"%player)
 
 
     # Process

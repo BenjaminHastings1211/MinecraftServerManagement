@@ -18,6 +18,7 @@ class StatsCommand(Event):
                 p.mc_name,
                 p.death_count,
                 p.playtime_seconds,
+                p.message_count,
                 COALESCE((
                     SELECT TIMESTAMPDIFF(SECOND, s.started_at, NOW())
                     FROM sessions s
@@ -40,6 +41,17 @@ class StatsCommand(Event):
         stats = self.server.get_player_stats(self.player)
         mobs_killed = self.server.get_mobs_killed(self.player, stats)
         blocks_mined = self.server.get_blocks_mined(self.player, stats)
+
+        custom = stats.get("minecraft:custom", {})
+
+        distance_km = sum(
+            value for key, value in custom.items() if key.endswith("_one_cm")
+        ) / 100000
+        message_count = result["message_count"] or 0
+        since_death = custom.get("minecraft:time_since_death", 0) // 20
+        fish_caught = custom.get("minecraft:fish_caught", 0)
+        animals_bred = custom.get("minecraft:animals_bred", 0)
+        villager_trades = custom.get("minecraft:traded_with_villager", 0)
 
         self.server.notify(
             tellraw.to_player(self.player)
@@ -87,6 +99,66 @@ class StatsCommand(Event):
                 str(mobs_killed) if mobs_killed is not None else "Data not available",
                 bold=True,
                 color="#ff5555",
+            )
+        )
+
+        self.server.notify(
+            tellraw.to_player(self.player)
+            .text("➤ Distance Traveled: ", color="#aaaaaa")
+            .text(
+                str(f"{distance_km:,.1f} km") if distance_km is not None else "Data not available",
+                bold=True,
+                color="#55ffff"
+            )
+        )
+
+        self.server.notify(
+            tellraw.to_player(self.player)
+            .text("✉ Messages Sent: ", color="#aaaaaa")
+            .text(
+                str(f"{message_count:,}") if message_count is not None else "Data not available",
+                bold=True,
+                color="#ffff55"
+            )
+        )
+
+        self.server.notify(
+            tellraw.to_player(self.player)
+            .text("♥ Since Last Death: ", color="#aaaaaa")
+            .text(
+                tellraw.duration(since_death) if since_death is not None else "Data not available",
+                bold=True,
+                color="#ff7777"
+            )
+        )
+
+        self.server.notify(
+            tellraw.to_player(self.player)
+            .text("≈ Fish Caught: ", color="#aaaaaa")
+            .text(
+                str(f"{fish_caught:,}") if fish_caught is not None else "Data not available",
+                bold=True,
+                color="#55aaff"
+            )
+        )
+
+        self.server.notify(
+            tellraw.to_player(self.player)
+            .text("✿ Animals Bred: ", color="#aaaaaa")
+            .text(
+                str(f"{animals_bred:,}") if animals_bred is not None else "Data not available",
+                bold=True,
+                color="#ff55ff"
+            )
+        )
+
+        self.server.notify(
+            tellraw.to_player(self.player)
+            .text("⚖ Villager Trades: ", color="#aaaaaa")
+            .text(
+                str(f"{villager_trades:,}") if villager_trades is not None else "Data not available",
+                bold=True,
+                color="#55ff55"
             )
         )
 

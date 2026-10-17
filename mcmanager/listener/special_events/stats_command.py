@@ -2,7 +2,6 @@ import re
 
 from mcmanager.messages import tellraw
 from mcmanager.listener.base import Event
-from mcmanager.database import sessions
 
 
 class StatsCommand(Event):
@@ -76,6 +75,7 @@ class StatsCommand(Event):
         return "!stats"
 
     #Time Fomatting method(could add to a utils file later)
+    @staticmethod
     def duration(seconds):
         """Format seconds as e.g. '2d 3h 14m', '5m 12s', or '42s'."""
         seconds = int(seconds or 0)

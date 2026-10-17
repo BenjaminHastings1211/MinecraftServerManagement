@@ -11,7 +11,7 @@ from pathlib import Path
 
 import psutil
 
-from mcmanager.database import registry, players
+from mcmanager.database import registry, sessions
 from mcmanager.database.client import DatabaseClient
 from mcmanager.console import Console, strip_formatting
 from mcmanager.properties import Properties
@@ -650,7 +650,7 @@ class Server:
         self.stop_listener()
 
         with DatabaseClient() as db:
-            players.logout_all(db, self.id)
+            sessions.recover(db, self.id)
 
         return True
 

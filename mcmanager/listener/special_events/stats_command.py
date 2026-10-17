@@ -14,7 +14,7 @@ class StatsCommand(Event):
     def action(self, db):
         result = db.query(
             """
-            SELECT mc_name, death_count, playtime_seconds, session_seconds
+            SELECT mc_name, death_count, playtime_seconds, duration_seconds
             FROM players
             WHERE server_id = %s AND mc_name = %s;
             """,
@@ -24,8 +24,8 @@ class StatsCommand(Event):
         if result is None:
             return
 
-        playtime = (result["playtime_seconds"] or 0) + result["session_seconds"]
-        current_session = result["session_seconds"]
+        playtime = (result["playtime_seconds"] or 0) + result["duration_seconds"]
+        current_session = result["duration_seconds"]
 
         self.server.notify(
             tellraw.to_player(self.player)
@@ -51,7 +51,7 @@ class StatsCommand(Event):
             .text("▶ Current Session: ", color="#aaaaaa")
             .text(
                 tellraw.duration(current_session)
-                if result["session_seconds"] > 0
+                if result["duration_seconds"] > 0
                 else "Not in session",
                 bold=True,
                 color="#ffaa00",

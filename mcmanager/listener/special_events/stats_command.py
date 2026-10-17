@@ -37,8 +37,9 @@ class StatsCommand(Event):
         current_session = result["current_session_seconds"] or 0
         playtime = (result["playtime_seconds"] or 0) + current_session
 
-        mobs_killed = self.server.get_mobs_killed(self.player)
-        blocks_mined = self.server.get_blocks_mined(self.player)
+        stats = self.server.get_player_stats(self.player)
+        mobs_killed = self.server.get_mobs_killed(self.player, stats)
+        blocks_mined = self.server.get_blocks_mined(self.player, stats)
 
         self.server.notify(
             tellraw.to_player(self.player)
@@ -73,7 +74,7 @@ class StatsCommand(Event):
             tellraw.to_player(self.player)
             .text("⛏ Total Blocks Mined: ", color="#aaaaaa")
             .text(
-                str(self.server.get_blocks_mined(self.player)) if self.server.get_blocks_mined(self.player) is not None else "Data not available",
+                str(blocks_mined) if blocks_mined is not None else "Data not available",
                 bold=True,
                 color="#55ff55",
             )
@@ -83,7 +84,7 @@ class StatsCommand(Event):
             tellraw.to_player(self.player)
             .text("⚔ Total Mob Kills: ", color="#aaaaaa")
             .text(
-                str(mobs_killed),
+                str(mobs_killed) if mobs_killed is not None else "Data not available",
                 bold=True,
                 color="#ff5555",
             )

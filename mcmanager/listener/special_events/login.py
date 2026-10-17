@@ -17,7 +17,7 @@ class Login(Event):
         )
 
         # create & initalize player if it is first time on server
-        player_info = players.create(db, self.server.id, self.player, first_joined=self.when)
+        player_info = players.create(db, self.server.id, self.player)
         if first_visit:
             self.server.register_player(self.player)
 

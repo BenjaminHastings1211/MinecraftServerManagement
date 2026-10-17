@@ -41,7 +41,6 @@ CREATE TABLE IF NOT EXISTS players (
     death_count      INT UNSIGNED NOT NULL DEFAULT 0,
     last_death_date  DATETIME NULL,
     playtime_seconds BIGINT UNSIGNED NOT NULL DEFAULT 0,
-    online           BOOLEAN NOT NULL DEFAULT FALSE,
     message_count    BIGINT NOT NULL DEFAULT 0,
     permission_id    SMALLINT NOT NULL DEFAULT 1,
 

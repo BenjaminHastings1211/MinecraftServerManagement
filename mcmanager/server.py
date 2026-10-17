@@ -403,7 +403,6 @@ class Server:
         """ this function will run once when the server is booted for the first time """
 
         self.command("scoreboard objectives add deaths deathCount")
-        self.command("scoreboard objectives add mob_kills minecraft.custom:minecraft.mob_kills")
 
     def command(self, command):
         """Run one server command over RCON and return its reply."""
@@ -466,20 +465,9 @@ class Server:
             float(match.group("z")),
         )
 
-    def get_mobs_killed(self, player):
+    def get_player_stats(self, player):
         """
-        Return player's total mob kills, or 0 if failed to regex match.
-        """
-        response = self.command(
-            "scoreboard players get %s mob_kills" % player
-        )
-
-        match = re.search(r"has (-?\d+)", str(response))
-        return int(match.group(1)) if match else 0
-
-    def get_blocks_mined(self, player):
-        """
-        Return total blocks mined across all block types, or 0 if unavailable.
+        Return the player's stats dict from the world's stats file, or {} if unavailable.
         """
         resp = self.command(f"data get entity {player} UUID")
         match = re.search(
@@ -488,18 +476,39 @@ class Server:
         )
 
         if not match:
-            return 0
+            return {}
 
         a, b, c, d = (int(match.group(i)) & 0xFFFFFFFF for i in range(1, 5))
         player_uuid = uuid.UUID(int=(a << 96) | (b << 64) | (c << 32) | d)
 
         self.command("save-all flush")  # stats file only updates on save
-        path = self.world_path / "stats" / f"{player_uuid}.json"
+
+        stats_dir = self.world_path / "players" / "stats"    # 26.1 and later
+        if not stats_dir.is_dir():
+            stats_dir = self.world_path / "stats"            # 1.21.11 and earlier
 
         try:
-            stats = json.loads(path.read_text()).get("stats", {})
+            data = json.loads((stats_dir / f"{player_uuid}.json").read_text())
         except (FileNotFoundError, json.JSONDecodeError):
-            return 0
+            return {}
+
+        return data.get("stats", {})
+
+    def get_mobs_killed(self, player, stats=None):
+        """
+        Return player's total mob kills, or 0 if unavailable.
+        """
+        if stats is None:
+            stats = self.get_player_stats(player)
+
+        return stats.get("minecraft:custom", {}).get("minecraft:mob_kills", 0)
+
+    def get_blocks_mined(self, player, stats=None):
+        """
+        Return total blocks mined across all block types, or 0 if unavailable.
+        """
+        if stats is None:
+            stats = self.get_player_stats(player)
 
         return sum(stats.get("minecraft:mined", {}).values())
 
@@ -509,7 +518,6 @@ class Server:
         """
          # set the death count to 0
         self.command("scoreboard players set %s deaths 0"%player)
-        self.command("scoreboard players set %s mob_kills 0"%player)
 
 
     # Process

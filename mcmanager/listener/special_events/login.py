@@ -1,11 +1,10 @@
 import re
 
 from mcmanager.listener.base import Event
-from mcmanager.database import players
+from mcmanager.database import players, sessions
 
 
 class Login(Event):
-    # Newer versions prefix joins with "System chat: ".
     pattern = re.compile(r"^(?:System chat: )?(?P<player>\w+) joined the game$")
 
     @property
@@ -17,16 +16,13 @@ class Login(Event):
             players.get(db, self.server.id, self.player) is None
         )
 
-        # Record the login before messaging, so a failed message can't lose it.
-        player_info = players.login(
-            db,
-            self.server.id,
-            self.player,
-            at=self.when,
-        )
-
+        # create & initalize player if it is first time on server
+        player_info = players.create(db, self.server.id, self.player)
         if first_visit:
             self.server.register_player(self.player)
+
+        # create the session
+        sessions.start(db, self.server.id, self.player, at = self.when)
 
         # Keep the Minecraft scoreboard synchronized with the database.
         self.server.command(

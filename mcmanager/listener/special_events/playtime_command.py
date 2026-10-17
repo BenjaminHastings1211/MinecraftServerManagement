@@ -2,6 +2,7 @@ import re
 
 from mcmanager.messages import tellraw
 from mcmanager.listener.base import Event, duration
+from mcmanager.database import players
 
 
 class PlaytimeCommand(Event):
@@ -12,28 +13,13 @@ class PlaytimeCommand(Event):
         return self.match["player"]
 
     def action(self, db):
-        result = db.query(
-            """
-            SELECT playtime_seconds, session_start
-            FROM players
-            WHERE server_id = %s AND mc_name = %s;
-            """,
-            [self.server.id, self.player],
-        ).first()
+        result = players.get(db, self.server.id, self.player)
 
         if result is None:
             return
 
-        playtime = result["playtime_seconds"] or 0
-        session_start = result["session_start"]
-        current_session = 0
-
-        if session_start is not None:
-            current_session = max(
-                0,
-                int((self.when - session_start).total_seconds()),
-            )
-            playtime += current_session
+        playtime = (result["playtime_seconds"] or 0) + result["session_seconds"]
+        current_session = result["session_seconds"]
 
         self.server.notify(
             tellraw.to_player(self.player)
@@ -52,9 +38,7 @@ class PlaytimeCommand(Event):
             tellraw.to_player(self.player)
             .text("▶ Current Session: ", color="#aaaaaa")
             .text(
-                duration(current_session)
-                if session_start is not None
-                else "Not in session",
+                duration(current_session) if result["online"] else "Not in session",
                 bold=True,
                 color="#ffaa00",
             )

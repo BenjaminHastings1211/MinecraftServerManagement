@@ -15,7 +15,7 @@ class HelpCommand(Event):
     def action(self, db):
         from mcmanager.listener.events import EVENTS
 
-        message = (
+        self.server.notify(
             tellraw.to_player(self.player)
             .text("━━━ ", color="#555555")
             .text(self.server.name, bold=True, color="#00ff00")
@@ -29,13 +29,13 @@ class HelpCommand(Event):
             details = event_class.get_details()
 
             if details and permissions.is_allowed(level, event_class.permission):
-                message.text("\n")
-                message.text("- ", bold=True, color="#555555")
-                message.text(event_class.get_command(), bold=True, color="#ff0000")
-                message.text(": ", bold=True, color="#555555")
-                message.text(details, color="#aaaaaa")
-
-        self.server.notify(message)
+                self.server.notify(
+                    tellraw.to_player(self.player)
+                    .text("- ", bold=True, color="#555555")
+                    .text(event_class.get_command(), bold=True, color="#ff0000")
+                    .text(": ", bold=True, color="#555555")
+                    .text(details, color="#aaaaaa")
+                )
 
     @staticmethod
     def get_details():

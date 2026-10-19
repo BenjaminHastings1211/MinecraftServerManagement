@@ -56,9 +56,7 @@ def end(db, server_id, mc_name, at=None, reason="DISCONNECT"):
     if session is None:
         return None
 
-    ended_at = at
-
-    result = db.query(
+    db.query(
         """
         UPDATE sessions
         SET ended_at = COALESCE(%s, NOW()),
@@ -87,13 +85,10 @@ def end(db, server_id, mc_name, at=None, reason="DISCONNECT"):
         db.query(
             """
             UPDATE players
-            SET playtime_seconds = playtime_seconds + %s,
-                session_start = NULL,
-                online = FALSE,
-                last_active = COALESCE(%s, NOW())
+            SET playtime_seconds = playtime_seconds + %s
             WHERE id = %s
             """,
-            [seconds, ended_at, player["id"]],
+            [seconds, player["id"]],
         )
 
     return session
@@ -132,6 +127,16 @@ def recover(db, server_id, at=None):
               AND ended_at IS NULL
             """,
             [at, at, session["id"]],
+        )
+
+        db.query(
+            """
+            UPDATE players p
+            JOIN sessions s ON s.player_id = p.id
+            SET p.playtime_seconds = p.playtime_seconds + COALESCE(s.duration_seconds, 0)
+            WHERE s.id = %s
+            """,
+            [session["id"]],
         )
 
     return len(active_sessions)

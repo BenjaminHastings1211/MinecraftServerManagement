@@ -42,12 +42,12 @@ class PermCommand(Event):
             self.server.notify(
                 tellraw.to_player(self.player)
                 .text("Your permission level: ")
-                .text(self._level_name(db_player_info.permission), bold=True, color="#00ff00")
+                .text(self._level_name(db_player_info["permission_id"]), bold=True, color="#00ff00")
             )
             return
 
         # Everything below is OP and above only
-        if db_player_info.permission < permissions.OP:
+        if db_player_info["permission_id"] < permissions.OP:
             self.server.notify(
                 tellraw.to_player(self.player).text("You can only view your own permission level.")
             )
@@ -55,7 +55,7 @@ class PermCommand(Event):
 
         # !perm all -> list every player
         if self.target_player.lower() == "all":
-            all_players = players.get_all(db, self.server.id)
+            all_players = players.online(db, self.server.id)
 
             if not all_players:
                 self.server.notify(
@@ -64,14 +64,14 @@ class PermCommand(Event):
                 return
 
             message = tellraw.to_player(self.player)
-            for index, info in enumerate(sorted(all_players, key=lambda p: p.name.lower())):
+            for index, info in enumerate(sorted(all_players, key=lambda p: p["mc_name"].lower())):
                 if index > 0:
                     message = message.text(" | ")
                 message = (
                     message
-                    .text(info.name, bold=True, color="#00ff00")
+                    .text(info["mc_name"], bold=True, color="#00ff00")
                     .text(": ")
-                    .text(self._level_name(info.permission), bold=True, color="#ff0000")
+                    .text(self._level_name(info["permission_id"]), bold=True, color="#ff0000")
                 )
 
             self.server.notify(message)

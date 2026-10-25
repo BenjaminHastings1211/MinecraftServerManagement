@@ -465,9 +465,9 @@ class Server:
             float(match.group("z")),
         )
 
-    def get_player_stats(self, player):
+    def get_player_uuid(self, player):
         """
-        Return the player's stats dict from the world's stats file, or {} if unavailable.
+        return the players uuid
         """
         resp = self.command(f"data get entity {player} UUID")
         match = re.search(
@@ -476,10 +476,17 @@ class Server:
         )
 
         if not match:
-            return {}
+            return None
 
         a, b, c, d = (int(match.group(i)) & 0xFFFFFFFF for i in range(1, 5))
-        player_uuid = uuid.UUID(int=(a << 96) | (b << 64) | (c << 32) | d)
+        return str(uuid.UUID(int=(a << 96) | (b << 64) | (c << 32) | d))
+
+
+    def get_player_stats(self, player):
+        """
+        Return the player's stats dict from the world's stats file, or {} if unavailable.
+        """
+        player_uuid = players.get_uuid(self.server.id, player)
 
         self.command("save-all flush")  # stats file only updates on save
 
@@ -518,6 +525,11 @@ class Server:
         """
          # set the death count to 0
         self.command("scoreboard players set %s deaths 0"%player)
+
+        # get and assign uuid to player
+        uuid = self.get_player_uuid(player)
+        if uuid:
+            players.set_uuid(uuid)
 
 
     # Process

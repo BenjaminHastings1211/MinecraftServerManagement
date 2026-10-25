@@ -69,6 +69,18 @@ def set_real_name(db, server_id, mc_name, real_name):
         [real_name, server_id, _clean(mc_name)],
     )
 
+def set_uuid(db, server_id, mc_name, uuid):
+    """Update a player's UUID."""
+    db.query(
+        """
+        UPDATE players
+        SET uuid = %s
+        WHERE server_id = %s
+          AND mc_name = %s
+        """,
+        [uuid, server_id, _clean(mc_name)],
+    )
+
 
 # Lookups
 
@@ -105,6 +117,29 @@ def online(db, server_id):
         [server_id],
     ).rows
 
+def get_by_uuid(db, uuid):
+    """Get a player by UUID, including online status and session time."""
+    return db.query(
+        _SELECT + """
+        WHERE p.uuid = %s
+        """,
+        [uuid],
+    ).first()
+
+
+def get_uuid(db, server_id, mc_name):
+    """Get a player's UUID by server and Minecraft username."""
+    result = db.query(
+        """
+        SELECT uuid
+        FROM players
+        WHERE server_id = %s
+          AND mc_name = %s
+        """,
+        [server_id, _clean(mc_name)],
+    ).first()
+
+    return result["uuid"] if result else None
 
 # Statistics
 

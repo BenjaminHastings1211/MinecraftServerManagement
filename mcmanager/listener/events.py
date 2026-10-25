@@ -15,6 +15,9 @@ from mcmanager.listener.special_events.help_command import HelpCommand
 from mcmanager.listener.special_events.find_command import FindCommand
 from mcmanager.listener.special_events.operator_updates import PlayerOp, PlayerDeOp
 from mcmanager.listener.special_events.server_boot import ServerBoot
+from mcmanager.listener.special_events.stats_command import StatsCommand
+from mcmanager.listener.special_events.top_command import TopCommand
+from mcmanager.listener.special_events.perm_level_command import PermCommand
 
 
 # The order of parcing matters so check this
@@ -27,6 +30,9 @@ EVENTS = [
     Death,
     DeathLocationCommand,
     PlaytimeCommand,
+    TopCommand,
+    StatsCommand,
+    PermCommand,
     HelpCommand,
     FindCommand,
     Chat,

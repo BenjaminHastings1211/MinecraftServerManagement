@@ -1,7 +1,7 @@
 import re
 
 from mcmanager.listener.base import Event
-from mcmanager.database import players, sessions
+from mcmanager.database import players, sessions, servers
 
 
 class Login(Event):
@@ -12,17 +12,29 @@ class Login(Event):
         return self.match["player"]
 
     def action(self, db):
-        first_visit = (
-            players.get(db, self.server.id, self.player) is None
+        player_info = players.get(db, self.server.id, self.player)
+        first_visit = player_info is None
+
+        reinit_after = servers.get_players_reinit_after(db, self.server.id)
+        needs_reinit = (
+            reinit_after is not None
+            and (
+                first_visit
+                or not sessions.played_since(
+                    db, player_info["id"], reinit_after
+                )
+            )
         )
 
-        # create & initalize player if it is first time on server
+        # Create the player if they don't exist yet.
         player_info = players.create(db, self.server.id, self.player)
-        if first_visit:
-            self.server.register_player(self.player)
 
-        # create the session
-        sessions.start(db, self.server.id, self.player, at = self.when)
+        # Initialize new players or players marked for reinitialization.
+        if first_visit or needs_reinit:
+            self.server.register_player(db, self.player)
+
+        # Create the session after checking the previous session history.
+        sessions.start(db, self.server.id, self.player, at=self.when)
 
         # Keep the Minecraft scoreboard synchronized with the database.
         self.server.command(

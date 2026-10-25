@@ -1,7 +1,8 @@
+
 import re
 
 from mcmanager.messages import tellraw
-from mcmanager.listener.base import Event
+from mcmanager.listener.base import Event, duration
 
 
 class StatsCommand(Event):
@@ -38,129 +39,76 @@ class StatsCommand(Event):
         current_session = result["current_session_seconds"] or 0
         playtime = (result["playtime_seconds"] or 0) + current_session
 
-        stats = self.server.get_player_stats(self.player)
-        mobs_killed = self.server.get_mobs_killed(self.player, stats)
-        blocks_mined = self.server.get_blocks_mined(self.player, stats)
+        player_stats = self.server.get_player_stats(self.player)
+        mobs_killed = self.server.get_mobs_killed(self.player, player_stats)
+        blocks_mined = self.server.get_blocks_mined(self.player, player_stats)
 
-        custom = stats.get("minecraft:custom", {})
+        custom = player_stats.get("minecraft:custom", {})
 
         distance_km = sum(
-            value for key, value in custom.items() if key.endswith("_one_cm")
+            value
+            for key, value in custom.items()
+            if key.endswith("_one_cm")
         ) / 100000
+
         message_count = result["message_count"] or 0
         since_death = custom.get("minecraft:time_since_death", 0) // 20
         fish_caught = custom.get("minecraft:fish_caught", 0)
         animals_bred = custom.get("minecraft:animals_bred", 0)
         villager_trades = custom.get("minecraft:traded_with_villager", 0)
 
-        self.server.notify(
-            tellraw.to_player(self.player)
+        stats = [
+            ("☠ Death Count", result["death_count"] or 0, "#ff5555"),
+            ("⌛ Total Playtime", duration(playtime), "#55aaff"),
+            (
+                "▶ Current Session",
+                duration(current_session)
+                if current_session > 0
+                else "Not in session",
+                "#ffaa00",
+            ),
+            (
+                "⛏ Total Blocks Mined",
+                blocks_mined
+                if blocks_mined is not None
+                else "Data not available",
+                "#55ff55",
+            ),
+            (
+                "⚔ Total Mob Kills",
+                mobs_killed
+                if mobs_killed is not None
+                else "Data not available",
+                "#ff5555",
+            ),
+            ("➤ Distance Traveled", f"{distance_km:,.1f} km", "#55ffff"),
+            ("✉ Messages Sent", f"{message_count:,}", "#ffff55"),
+            ("♥ Since Last Death", duration(since_death), "#ff7777"),
+            ("≈ Fish Caught", f"{fish_caught:,}", "#55aaff"),
+            ("✿ Animals Bred", f"{animals_bred:,}", "#ff55ff"),
+            ("⚖ Villager Trades", f"{villager_trades:,}", "#55ff55"),
+        ]
+
+        message = tellraw.to_player(self.player)
+        (
+            message
             .text("━━━ ", color="#555555")
             .text(self.server.name, bold=True, color="#00ff00")
             .text(" ━━━", color="#555555")
+            .new_line()
         )
 
-        self.server.notify(
-            tellraw.to_player(self.player)
-            .text("☠ Death Count: ", color="#aaaaaa")
-            .text(str(result["death_count"] or 0), bold=True, color="#ff5555")
-        )
+        for i, (title, value, color) in enumerate(stats):
+            self.construct_stat_readout(message, title, value, color, last_line=(i == len(stats) - 1))
 
-        self.server.notify(
-            tellraw.to_player(self.player)
-            .text("⌛ Total Playtime: ", color="#aaaaaa")
-            .text(tellraw.duration(playtime), bold=True, color="#55aaff")
-        )
+        self.server.notify(message)
 
-        self.server.notify(
-            tellraw.to_player(self.player)
-            .text("▶ Current Session: ", color="#aaaaaa")
-            .text(
-                tellraw.duration(current_session) if current_session > 0 else "Not in session",
-                bold=True,
-                color="#ffaa00",
-            )
-        )
-
-        self.server.notify(
-            tellraw.to_player(self.player)
-            .text("⛏ Total Blocks Mined: ", color="#aaaaaa")
-            .text(
-                str(blocks_mined) if blocks_mined is not None else "Data not available",
-                bold=True,
-                color="#55ff55",
-            )
-        )
-
-        self.server.notify(
-            tellraw.to_player(self.player)
-            .text("⚔ Total Mob Kills: ", color="#aaaaaa")
-            .text(
-                str(mobs_killed) if mobs_killed is not None else "Data not available",
-                bold=True,
-                color="#ff5555",
-            )
-        )
-
-        self.server.notify(
-            tellraw.to_player(self.player)
-            .text("➤ Distance Traveled: ", color="#aaaaaa")
-            .text(
-                str(f"{distance_km:,.1f} km") if distance_km is not None else "Data not available",
-                bold=True,
-                color="#55ffff"
-            )
-        )
-
-        self.server.notify(
-            tellraw.to_player(self.player)
-            .text("✉ Messages Sent: ", color="#aaaaaa")
-            .text(
-                str(f"{message_count:,}") if message_count is not None else "Data not available",
-                bold=True,
-                color="#ffff55"
-            )
-        )
-
-        self.server.notify(
-            tellraw.to_player(self.player)
-            .text("♥ Since Last Death: ", color="#aaaaaa")
-            .text(
-                tellraw.duration(since_death) if since_death is not None else "Data not available",
-                bold=True,
-                color="#ff7777"
-            )
-        )
-
-        self.server.notify(
-            tellraw.to_player(self.player)
-            .text("≈ Fish Caught: ", color="#aaaaaa")
-            .text(
-                str(f"{fish_caught:,}") if fish_caught is not None else "Data not available",
-                bold=True,
-                color="#55aaff"
-            )
-        )
-
-        self.server.notify(
-            tellraw.to_player(self.player)
-            .text("✿ Animals Bred: ", color="#aaaaaa")
-            .text(
-                str(f"{animals_bred:,}") if animals_bred is not None else "Data not available",
-                bold=True,
-                color="#ff55ff"
-            )
-        )
-
-        self.server.notify(
-            tellraw.to_player(self.player)
-            .text("⚖ Villager Trades: ", color="#aaaaaa")
-            .text(
-                str(f"{villager_trades:,}") if villager_trades is not None else "Data not available",
-                bold=True,
-                color="#55ff55"
-            )
-        )
+    @staticmethod
+    def construct_stat_readout(message, title, value, accent_color="#00FF00", last_line=False):
+        message.text(f"{title}: ", color="#aaaaaa")
+        message.text(str(value), bold=True, color=accent_color)
+        if not last_line:
+            message.new_line()
 
     @staticmethod
     def get_details():

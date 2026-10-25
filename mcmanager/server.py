@@ -12,7 +12,7 @@ from pathlib import Path
 
 import psutil
 
-from mcmanager.database import registry, sessions
+from mcmanager.database import registry, sessions, players
 from mcmanager.database.client import DatabaseClient
 from mcmanager.console import Console, strip_formatting
 from mcmanager.properties import Properties
@@ -482,11 +482,11 @@ class Server:
         return str(uuid.UUID(int=(a << 96) | (b << 64) | (c << 32) | d))
 
 
-    def get_player_stats(self, player):
+    def get_player_stats(self, db, player):
         """
         Return the player's stats dict from the world's stats file, or {} if unavailable.
         """
-        player_uuid = players.get_uuid(self.server.id, player)
+        player_uuid = players.get_uuid(db, self.id, player)
 
         self.command("save-all flush")  # stats file only updates on save
 
@@ -501,25 +501,25 @@ class Server:
 
         return data.get("stats", {})
 
-    def get_mobs_killed(self, player, stats=None):
+    def get_mobs_killed(self, db,  player, stats=None):
         """
         Return player's total mob kills, or 0 if unavailable.
         """
         if stats is None:
-            stats = self.get_player_stats(player)
+            stats = self.get_player_stats(db, player)
 
         return stats.get("minecraft:custom", {}).get("minecraft:mob_kills", 0)
 
-    def get_blocks_mined(self, player, stats=None):
+    def get_blocks_mined(self, db, player, stats=None):
         """
         Return total blocks mined across all block types, or 0 if unavailable.
         """
         if stats is None:
-            stats = self.get_player_stats(player)
+            stats = self.get_player_stats(db, player)
 
         return sum(stats.get("minecraft:mined", {}).values())
 
-    def register_player(self, player):
+    def register_player(self, db, player):
         """
         make sure the player scoreboards or whatever necessary is created when a player is first registered on a server
         """
@@ -528,8 +528,10 @@ class Server:
 
         # get and assign uuid to player
         uuid = self.get_player_uuid(player)
+        # TODO: passing the db instance all over the place is not great
         if uuid:
-            players.set_uuid(uuid)
+            players.set_uuid(db, self.id, player, uuid)
+
 
 
     # Process

@@ -39,9 +39,9 @@ class StatsCommand(Event):
         current_session = result["current_session_seconds"] or 0
         playtime = (result["playtime_seconds"] or 0) + current_session
 
-        player_stats = self.server.get_player_stats(self.player)
-        mobs_killed = self.server.get_mobs_killed(self.player, player_stats)
-        blocks_mined = self.server.get_blocks_mined(self.player, player_stats)
+        player_stats = self.server.get_player_stats(db, self.player)
+        mobs_killed = self.server.get_mobs_killed(db, self.player, player_stats)
+        blocks_mined = self.server.get_blocks_mined(db, self.player, player_stats)
 
         custom = player_stats.get("minecraft:custom", {})
 

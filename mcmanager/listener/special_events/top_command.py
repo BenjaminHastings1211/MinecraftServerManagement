@@ -1,7 +1,7 @@
 import re
 
 from mcmanager.messages import tellraw
-from mcmanager.listener.base import Event
+from mcmanager.listener.base import Event, duration
 
 
 class TopCommand(Event):
@@ -37,12 +37,13 @@ class TopCommand(Event):
             .text(" ━━━", color="#555555")
         )
 
+
         for rank, player in enumerate(top_players, start=1):
             self.server.notify(
                 tellraw.to_player(self.player)
                 .text(f"{rank}. ", color="#aaaaaa")
                 .text(player["mc_name"], bold=True, color="#55aaff")
-                .text(f" - Playtime: {tellraw.duration(player['playtime_seconds'])}, Deaths: {player['death_count']}", color="#aaaaaa")
+                .text(f" - Playtime: {duration(player['playtime_seconds'])}, Deaths: {player['death_count']}", color="#aaaaaa")
             )
 
     @staticmethod

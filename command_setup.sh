@@ -19,6 +19,7 @@ declare -A COMMANDS=(
     [mc-config]="mc-config.py"
     [mc-start]="mc-start.py"
     [mc-upgrade]="mc-upgrade.py"
+    [mc-reinit]="mc-reinit.py"
 )
 
 echo "Setting up Minecraft commands..."

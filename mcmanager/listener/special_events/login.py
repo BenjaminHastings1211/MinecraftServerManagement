@@ -12,32 +12,57 @@ class Login(Event):
         return self.match["player"]
 
     def action(self, db):
-        player_info = players.get(db, self.server.id, self.player)
-        first_visit = player_info is None
+        server_id = self.server.id
+        player_name = self.player
 
-        reinit_after = servers.get_players_reinit_after(db, self.server.id)
+        # Find or create the player.
+        player_info = players.get(db, server_id, player_name)
+        first_visit = player_info is None
+        player_deaths = player_info['death_count'];
+
+        if first_visit:
+            player_info = players.create(db, server_id, player_name)
+
+        # Determine whether the player needs reinitialization.
+        reinit_after = servers.get_players_reinit_after(db, server_id)
         needs_reinit = (
             reinit_after is not None
-            and (
-                first_visit
-                or not sessions.played_since(
-                    db, player_info["id"], reinit_after
-                )
+            and not sessions.has_joined_since(
+                db, player_info["id"], reinit_after
             )
         )
 
-        # Create the player if they don't exist yet.
-        player_info = players.create(db, self.server.id, self.player)
+        # Register new players, players marked for reinitialization,
+        # or existing players whose UUID is missing.
+        needs_registration = (
+            first_visit
+            or needs_reinit
+            or player_info["uuid"] is None
+        )
 
-        # Initialize new players or players marked for reinitialization.
-        if first_visit or needs_reinit:
-            self.server.register_player(db, self.player)
+        if needs_registration:
+            self.server.register_player(db, player_name)
 
-        # Create the session after checking the previous session history.
-        sessions.start(db, self.server.id, self.player, at=self.when)
+            # Refresh player data in case registration updated the record.
+            player_info = players.get(db, server_id, player_name)
 
-        # Keep the Minecraft scoreboard synchronized with the database.
+        # Synchronize playtime with Minecraft's stats.
+        player_uuid = player_info["uuid"]
+
+        if player_uuid is not None:
+            self.server.statsService.reload(player_uuid)
+            playtime = self.server.statsService.get_playtime_seconds(player_uuid)
+            player_deaths = self.server.statsService.get_deaths(player_uuid)
+
+            if playtime is not None:
+                players.set_playtime(db, server_id, player_name, playtime)
+
+        # Start the session after checking reinitialization history.
+        sessions.start(db, server_id, player_name, at=self.when)
+
+        # Synchronize the deaths
+        players.set_death_count(db, server_id, player_name, player_deaths)
         self.server.command(
             "scoreboard players set %s deaths %d"
-            % (self.player, player_info["death_count"])
+            % (player_name, player_deaths)
         )

@@ -20,6 +20,7 @@ from mcmanager import backup as _backup
 from mcmanager.rcon import Rcon, RconError
 from mcmanager.paths import ROOT, SERVERS, DEFAULTS, VENV_PYTHON
 from mcmanager.versions import find_version_jar, filename_to_version
+from mcmanager.services.player_stats import PlayerStatsService
 
 
 LISTENER_MODULE = "mcmanager.listener"
@@ -144,6 +145,8 @@ class Server:
             raise FileNotFoundError(f"Server not found: {self.folder}")
 
         self._load_config()
+
+        self.statsService = PlayerStatsService(self.world_path / "players" / "stats");
 
     def __repr__(self):
         return f"Server({self.id!r}, name={self.name!r}, folder={self.folder!r})"

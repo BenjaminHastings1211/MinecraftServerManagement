@@ -1,4 +1,3 @@
-
 """
 The players table: one row per player per server, tracking persistent
 player information and lifetime statistics. Session state and history
@@ -7,6 +6,11 @@ are stored in the sessions table.
 Rows returned by lookups include:
     online: Whether the player has an active session.
     session_seconds: Length of the active session so far (0 when offline).
+    total_playtime_seconds: Stored lifetime playtime plus the active
+        session duration. This is an estimate while the player is online.
+
+playtime_seconds is synchronized from Minecraft's stats file and does
+not include the current session until Minecraft saves its stats.
 
 Times come from the database clock, so they agree whichever machine calls in.
 
@@ -22,7 +26,14 @@ _SELECT = """
                    0
                ),
                0
-           ) AS session_seconds
+           ) AS session_seconds,
+           p.playtime_seconds + COALESCE(
+               GREATEST(
+                   TIMESTAMPDIFF(SECOND, s.started_at, NOW()),
+                   0
+               ),
+               0
+           ) AS total_playtime_seconds
     FROM players AS p
     LEFT JOIN sessions AS s
         ON s.player_id = p.id
@@ -57,6 +68,8 @@ def create(db, server_id, mc_name, real_name=None):
     return get(db, server_id, mc_name)
 
 
+# Updates
+
 def set_real_name(db, server_id, mc_name, real_name):
     """Update a player's real name."""
     db.query(
@@ -68,6 +81,7 @@ def set_real_name(db, server_id, mc_name, real_name):
         """,
         [real_name, server_id, _clean(mc_name)],
     )
+
 
 def set_uuid(db, server_id, mc_name, uuid):
     """Update a player's UUID."""
@@ -82,10 +96,35 @@ def set_uuid(db, server_id, mc_name, uuid):
     )
 
 
+def set_playtime(db, server_id, mc_name, seconds):
+    """Synchronize completed lifetime playtime from Minecraft stats."""
+    db.query(
+        """
+        UPDATE players
+        SET playtime_seconds = %s
+        WHERE server_id = %s
+          AND mc_name = %s
+        """,
+        [seconds, server_id, _clean(mc_name)],
+    )
+
+def set_death_count(db, server_id, mc_name, death_count):
+    """Synchronize the death count from Minecraft."""
+    db.query(
+        """
+        UPDATE players
+        SET death_count = %s
+        WHERE server_id = %s
+          AND mc_name = %s
+        """,
+        [death_count, server_id, _clean(mc_name)],
+    )
+
+
 # Lookups
 
 def get(db, server_id, mc_name):
-    """Get a player, including derived online status and session time."""
+    """Get a player, including session status and playtime."""
     return db.query(
         _SELECT + """
         WHERE p.server_id = %s
@@ -117,8 +156,9 @@ def online(db, server_id):
         [server_id],
     ).rows
 
+
 def get_by_uuid(db, uuid):
-    """Get a player by UUID, including online status and session time."""
+    """Get a player by UUID, including session status and playtime."""
     return db.query(
         _SELECT + """
         WHERE p.uuid = %s
@@ -140,6 +180,7 @@ def get_uuid(db, server_id, mc_name):
     ).first()
 
     return result["uuid"] if result else None
+
 
 # Statistics
 

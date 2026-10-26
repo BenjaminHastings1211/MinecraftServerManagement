@@ -181,15 +181,15 @@ def active(db, server_id):
         [server_id],
     ).rows
 
-def played_since(db, player_id, timestamp):
-    """Return whether a player has a session that ended after a timestamp."""
+def has_joined_since(db, player_id, timestamp):
+    """Return whether a player has started a session since a timestamp."""
     result = db.query(
         """
         SELECT EXISTS (
             SELECT 1
             FROM sessions
             WHERE player_id = %s
-              AND ended_at >= %s
+              AND started_at >= %s
         ) AS played
         """,
         [player_id, timestamp],

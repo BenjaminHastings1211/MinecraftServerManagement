@@ -17,6 +17,7 @@ The caller owns the Database connection and any transactions.
 """
 
 from mcmanager.database import players
+import re
 
 
 # Creating / ending sessions
@@ -201,7 +202,7 @@ def has_joined_since(db, player_id, timestamp):
 
 def playtime_summary(db, server_id, interval):
     """Get each player's playtime over the given interval."""
-    import re
+
 
     match = re.fullmatch(
         r"(\d+) (DAY|DAYS|WEEK|WEEKS|MONTH|MONTHS)",

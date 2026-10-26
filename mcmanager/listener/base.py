@@ -7,6 +7,10 @@ from datetime import datetime, timedelta
 
 from mcmanager.database import permissions
 
+def seconds_since(timestamp):
+    if timestamp is None:
+        return None
+    return int((datetime.now() - timestamp).total_seconds())
 
 def duration(seconds):
     days, seconds = divmod(seconds, 86400)

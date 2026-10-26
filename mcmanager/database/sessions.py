@@ -17,6 +17,7 @@ The caller owns the Database connection and any transactions.
 """
 
 from mcmanager.database import players
+import re
 
 
 # Creating / ending sessions
@@ -181,23 +182,46 @@ def active(db, server_id):
         [server_id],
     ).rows
 
+def has_joined_since(db, player_id, timestamp):
+    """Return whether a player has started a session since a timestamp."""
+    result = db.query(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM sessions
+            WHERE player_id = %s
+              AND started_at >= %s
+        ) AS played
+        """,
+        [player_id, timestamp],
+    ).first()
+
+    return bool(result["played"])
+
 # metrics
 
 def playtime_summary(db, server_id, interval):
-    """
-    Get each player's playtime over the given interval.
+    """Get each player's playtime over the given interval."""
 
-    Args:
-        db: Database connection.
-        server_id: Server ID.
-        interval: MySQL interval value, e.g. "7 DAY", "1 MONTH".
 
-    Returns:
-        Rows containing player_id, mc_name, and playtime_seconds,
-        ordered by most playtime.
-    """
+    match = re.fullmatch(
+        r"(\d+) (DAY|DAYS|WEEK|WEEKS|MONTH|MONTHS)",
+        interval.upper(),
+    )
+    if not match:
+        raise ValueError("Invalid interval")
+
+    amount, unit = match.groups()
+    amount = int(amount)
+
+    if unit in ("WEEK", "WEEKS"):
+        amount *= 7
+        unit = "DAY"
+
+    interval_sql = f"INTERVAL {amount} {unit}"
+
     return db.query(
-        """
+        f"""
         SELECT
             p.id AS player_id,
             p.mc_name,
@@ -206,7 +230,7 @@ def playtime_summary(db, server_id, interval):
                     0,
                     TIMESTAMPDIFF(
                         SECOND,
-                        GREATEST(s.started_at, NOW() - INTERVAL %s),
+                        GREATEST(s.started_at, NOW() - {interval_sql}),
                         LEAST(COALESCE(s.ended_at, NOW()), NOW())
                     )
                 )
@@ -216,10 +240,10 @@ def playtime_summary(db, server_id, interval):
             ON s.player_id = p.id
             AND s.server_id = p.server_id
             AND s.started_at < NOW()
-            AND COALESCE(s.ended_at, NOW()) > NOW() - INTERVAL %s
+            AND COALESCE(s.ended_at, NOW()) > NOW() - {interval_sql}
         WHERE p.server_id = %s
         GROUP BY p.id, p.mc_name
         ORDER BY playtime_seconds DESC
         """,
-        [interval, interval, server_id],
+        [server_id],
     ).rows

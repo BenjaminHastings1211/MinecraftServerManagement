@@ -1,7 +1,7 @@
 import re
 
 from mcmanager.listener.base import Event
-from mcmanager.database import sessions
+from mcmanager.database import sessions, players
 
 
 class Logout(Event):
@@ -14,4 +14,9 @@ class Logout(Event):
         return self.match["player"]
 
     def action(self, db):
+        player_info = players.get(db, self.server.id, self.player)
+
+        # remove stats from cache
+        self.server.statsService.unload(player_info["uuid"])
+
         sessions.end(db, self.server.id, self.player, at = self.when)

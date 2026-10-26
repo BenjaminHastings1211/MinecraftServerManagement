@@ -449,7 +449,6 @@ class Server:
 
         return match.group("dimension") if match else None
 
-
     def get_player_pos(self, player):
         resp = self.command(f"data get entity {player} Pos")
         match = re.search(
